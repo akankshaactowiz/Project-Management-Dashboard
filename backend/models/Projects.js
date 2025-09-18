@@ -65,6 +65,13 @@ const projectSchema = new mongoose.Schema({
   ProjectCode: { type: String, required: true, unique: true },
   Frequency: { type: String, default: "Daily" },
   Platform: { type: String, required: true },
+
+  // --- SALES ---
+  SOWFile: { type: String, required: true },
+  InputFile: { type: String, required: true },
+  OutputFile: { type: String, required: true },
+
+  
   Status: { type: String, default: "New" },
   BAU: { type: String , default: "None" },
   POC: { type: String, default: "None" },

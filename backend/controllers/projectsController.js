@@ -1,123 +1,10 @@
 import Project from "../models/Projects.js";
 import User from "../models/User.js";
 import { v4 as uuidv4 } from 'uuid';
-
-
 import Task from "../models/TaskData.js";
 import Notification from "../models/Notification.js";
-// import mongoose from "mongoose";
-
-// GET /projects with filters
-// export const getProjects = async (req, res) => {
-//   try {
-//     const { page = 1, pageSize = 20, status, search, department, date_range, qaid } = req.query;
-//     const filter = {};
-
-//     // Status filter
-//     if (status && status !== "All") filter.Status = status;
-
-//     // Department filter
-//     // if (department) filter.BAU = department;
-
-//     // Search filter
-//     if (search) filter.ProjectName = { $regex: search, $options: 'i' };
-
-//     // QA id
-//     if (qaid) filter.QAId = qaid;
-
-//     // Date range filter
-//     if (date_range) {
-//   const now = new Date();
-//   let startDate, endDate;
-//   console.log("Received date_range:", date_range);  // Debug log
-
-//   switch (date_range.toLowerCase()) {
-//     case "today":
-//       startDate = new Date(now);
-//       startDate.setHours(0, 0, 0, 0);
-//       endDate = new Date(now);
-//       endDate.setHours(23, 59, 59, 999);
-//       break;
-//     case "yesterday":
-//       startDate = new Date(now);
-//       startDate.setDate(startDate.getDate() - 1);
-//       startDate.setHours(0, 0, 0, 0);
-//       endDate = new Date(now);
-//       endDate.setDate(endDate.getDate() - 1);
-//       endDate.setHours(23, 59, 59, 999);
-//       break;
-//     case "this_week":
-//       startDate = new Date(now);
-//       startDate.setDate(startDate.getDate() - startDate.getDay());
-//       startDate.setHours(0, 0, 0, 0);
-//       endDate = new Date();
-//       endDate.setHours(23, 59, 59, 999);
-//       break;
-//     case "last_week":
-//       startDate = new Date(now);
-//       startDate.setDate(startDate.getDate() - startDate.getDay() - 7);
-//       startDate.setHours(0, 0, 0, 0);
-//       endDate = new Date(now);
-//       endDate.setDate(endDate.getDate() - endDate.getDay());
-//       endDate.setHours(0, 0, 0, 0);
-//       break;
-//     case "this_month":
-//       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-//       endDate = new Date();
-//       endDate.setHours(23, 59, 59, 999);
-//       break;
-//     case "last_month":
-//       startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-//       endDate = new Date(now.getFullYear(), now.getMonth(), 1);
-//       endDate.setHours(0, 0, 0, 0);
-//       break;
-//     default:
-//       console.warn("Invalid date_range:", date_range);  // Debug log
-//       startDate = null;
-//       endDate = null;
-//       break;
-//   }
-
-//   if (startDate && endDate) {
-//     filter.CreatedDate = { $gte: startDate, $lt: endDate };
-//     console.log("Date range applied:", startDate, endDate);
-//   } else {
-//     console.log("Skipping date filter because start or end date is invalid.");
-//   }
-// }
 
 
-//     // Parse pagination values
-//     const parsedPage = parseInt(page, 10) || 1;
-//     const parsedPageSize = parseInt(pageSize, 10) || 20;
-    
-//     // console.log("Filter applied:", filter);
-
-
-//     // Query database
-//     const total = await Project.countDocuments(filter);
-//     const projects = await Project.find(filter)
-//       .populate("PMId TLId DeveloperIds QAId BAUPersonId")
-//       .sort({ CreatedDate: -1 })
-//       .skip((parsedPage - 1) * parsedPageSize)
-//       .limit(parsedPageSize);
-
-//       // console.log("Projects found:", projects);
-//   //  console.log(projects);
-//     // Send response
-//     res.status(200).json({
-//       data: projects,
-//       total,
-//       page: parsedPage,
-//       pageSize: parsedPageSize
-//     });
-  
-//     // console.log("Projects fetched successfully");
-//   } catch (error) {
-//     console.error("Error in getProjects:", error);
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 export const getProjects = async (req, res) => {
   try {
@@ -135,7 +22,7 @@ export const getProjects = async (req, res) => {
     const filter = {};
     // if (qaStatus) filter.QAStatus = qaStatus;
     // Status filter
-    if (status && status !== "All")  filter.Status = { $regex: `^${status}$`, $options: "i" };
+    if (status && status !== "All") filter.Status = { $regex: `^${status}$`, $options: "i" };
 
     // Search filter
     if (search) filter.ProjectName = { $regex: search, $options: "i" };
@@ -221,7 +108,7 @@ export const getProjects = async (req, res) => {
     const total = await Project.countDocuments(filter);
     const projects = await Project.find(filter)
       .populate("PMId TLId DeveloperIds QAId BAUPersonId")
-      
+
       .sort({ CreatedDate: -1 })
       .skip((parsedPage - 1) * parsedPageSize)
       .limit(parsedPageSize);
@@ -284,15 +171,15 @@ export const getAssignedToQAProjects = async (req, res) => {
     const filter = {
       Status: { $in: ["assigned_to_qa", "qa_open", "qa_failed", "qa_passed"] }, // matches your project Status field
       qaStatus: { $in: ["assigned_to_qa", "qa_open", "qa_failed", "qa_passed"] },
-       // include all relevant QA statuses
+      // include all relevant QA statuses
     };
-    
 
-      if (status && status !== "All") {
+
+    if (status && status !== "All") {
       filter.Status = { $regex: `^${status}$`, $options: "i" };
     }
-   
-    
+
+
     // Search by ProjectName
     if (search) filter.ProjectName = { $regex: search, $options: "i" };
 
@@ -308,9 +195,9 @@ export const getAssignedToQAProjects = async (req, res) => {
 
       if (fromDate) filter.StartDate = { $gte: fromDate }; // adjust to your date field
     }
-     
-  //  Role based 
-  const userId = req.user._id;
+
+    //  Role based 
+    const userId = req.user._id;
     const role = req.user.roleId?.name; // e.g., "superadmin", "PM", "TL", etc.
 
     // if (role !== "Superadmin") {
@@ -328,7 +215,7 @@ export const getAssignedToQAProjects = async (req, res) => {
 
     const total = await Project.countDocuments(filter);
     const projects = await Project.find(filter)
-    .populate("PMId TLId DeveloperIds QAId BAUPersonId")
+      .populate("PMId TLId DeveloperIds QAId BAUPersonId")
       .sort({ StartDate: -1 }) // sort by StartDate or createdAt
       .skip(skip)
       .limit(limit);
@@ -627,10 +514,13 @@ export const createProject = async (req, res) => {
     const {
       ProjectCode,
       ProjectName,
+      SOWFile,
+      InputFile,
+      OutputFile,
       Frequency,
       Platform,
       RulesStatus,
-      PMId,  
+      PMId,
       TLId,
       DeveloperIds,
       QAId,
@@ -651,6 +541,9 @@ export const createProject = async (req, res) => {
     const newProject = new Project({
       ProjectCode,
       ProjectName,
+      SOWFile,
+      InputFile,
+      OutputFile,
       Frequency,
       Platform,
       RulesStatus,

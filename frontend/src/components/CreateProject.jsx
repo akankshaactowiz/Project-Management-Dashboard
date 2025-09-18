@@ -49,27 +49,27 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
 
   // PM and QA list
-useEffect(() => {
-  const loadManagers = async () => {
-    try {
-      const res = await fetch(
-        `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/pm-qa`,
-        { credentials: "include" }
-      );
-      if (!res.ok) throw new Error("Failed to fetch managers");
+  useEffect(() => {
+    const loadManagers = async () => {
+      try {
+        const res = await fetch(
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/pm-qa`,
+          { credentials: "include" }
+        );
+        if (!res.ok) throw new Error("Failed to fetch managers");
 
-      const data = await res.json();
-      setPmOptions(data.pmUsers);
-      setQaOptions(data.qaUsers);
-    } catch (err) {
-      console.error(err);
-      setPmOptions([]);
-      setQaOptions([]);
-    }
-  };
+        const data = await res.json();
+        setPmOptions(data.pmUsers);
+        setQaOptions(data.qaUsers);
+      } catch (err) {
+        console.error(err);
+        setPmOptions([]);
+        setQaOptions([]);
+      }
+    };
 
-  loadManagers();
-}, []);
+    loadManagers();
+  }, []);
 
   // --- Save project function ---
   const handleSave = async () => {
@@ -77,6 +77,9 @@ useEffect(() => {
       const payload = {
         ProjectCode: form.ProjectCode,
         ProjectName: form.ProjectName,
+        SOWFile: form.SOWFile,
+        InputFile: form.InputFile,
+        OutputFile: form.OutputFile,
         Frequency: form.Frequency,
         Platform: form.Platform,
         RulesStatus: form.RulesStatus,
@@ -88,7 +91,7 @@ useEffect(() => {
         StartDate: form.StartDate,
         EndDate: form.EndDate,
         // FeedId: 101,             
-     };
+      };
 
 
       const res = await fetch(`http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects`, {
@@ -111,7 +114,7 @@ useEffect(() => {
     }
   };
 
-  if (!isOpen) return null; 
+  if (!isOpen) return null;
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
       <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 rounded-2xl shadow-xl relative">
@@ -130,8 +133,9 @@ useEffect(() => {
                 name="ProjectCode"
                 value={form.ProjectCode}
                 onChange={handleChange}
-                placeholder="Code Should Start with 'ACT'"
+                placeholder="Write Project Code"
                 className="w-full bg-gray-100 rounded p-2"
+                required
               />
             </div>
             <div>
@@ -145,7 +149,84 @@ useEffect(() => {
                 className="w-full bg-gray-100 rounded p-2"
               />
             </div>
+
             <div>
+              <label htmlFor="SOWFile" className="block font-medium mb-1">SOW (File / Link)</label>
+              <div className="flex gap-2">
+                {/* File Upload */}
+                <input
+                  type="file"
+                  name="SOWFile"
+                  onChange={(e) => setForm({ ...form, SOWFile: e.target.files[0], SOWLink: "" })}
+                  className="w-1/2 bg-gray-100 rounded p-2"
+                />
+                {/* OR Link Input */}
+                <input
+                  type="text"
+                  placeholder="Either you can put link here"
+                  value={form.SOWLink || ""}
+                  onChange={(e) => setForm({ ...form, SOWLink: e.target.value, SOWFile: null })}
+                  className="w-1/2 bg-gray-100 rounded p-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="InputFile" className="block font-medium mb-1">Input (File / Link)</label>
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  name="InputFile"
+                  onChange={(e) => setForm({ ...form, InputFile: e.target.files[0], InputLink: "" })}
+                  className="w-1/2 bg-gray-100 rounded p-2"
+                />
+                <input
+                  type="text"
+                  placeholder="Either you can put link here"
+                  value={form.InputLink || ""}
+                  onChange={(e) => setForm({ ...form, InputLink: e.target.value, InputFile: null })}
+                  className="w-1/2 bg-gray-100 rounded p-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="OutputFile" className="block font-medium mb-1">Output (File / Link)</label>
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  name="OutputFile"
+                  onChange={(e) => setForm({ ...form, OutputFile: e.target.files[0], OutputLink: "" })}
+                  className="w-1/2 bg-gray-100 rounded p-2"
+                />
+                <input
+                  type="text"
+                  placeholder="Either you can put link here"
+                  value={form.OutputLink || ""}
+                  onChange={(e) => setForm({ ...form, OutputLink: e.target.value, OutputFile: null })}
+                  className="w-1/2 bg-gray-100 rounded p-2"
+                />
+              </div>
+            </div>
+
+            {/* Project Manager */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Project Manager</label>
+              <select
+                name="PM"
+                value={form.PM}
+                onChange={handleChange}
+                className="w-full bg-gray-100 rounded p-2"
+              >
+                <option value="">Select PM</option>
+                {pmOptions.map((user) => (
+                  <option key={user._id} value={user._id}>{user.name}</option>
+                ))}
+              </select>
+            </div>
+
+
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
               <select
                 name="Frequency"
@@ -185,17 +266,17 @@ useEffect(() => {
                 <option value="Unpublish">Unpublish</option>
                 <option value="Draft">Draft</option>
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
 
         {/* Additional Information Section */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <h3 className="mb-4 bg-purple-200 text-purple-700 px-3 py-2 rounded-md text-md font-semibold">
             Additional Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Project Manager</label>
               <select
                 name="PM"
@@ -208,25 +289,10 @@ useEffect(() => {
                 <option value="Abhishek">Abhishek</option>
                 <option value="Rohit">Rohit</option>
               </select>
-            </div> */}
-            
-            {/* Project Manager */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Project Manager</label>
-              <select
-                name="PM"
-                value={form.PM}
-                onChange={handleChange}
-                className="w-full bg-gray-100 rounded p-2"
-              >
-                <option value="">Select PM</option>
-                {pmOptions.map((user) => (
-                  <option key={user._id} value={user._id}>{user.name}</option>
-                ))}
-              </select>
             </div>
 
-            {/* QA Person */}
+
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">QA Person</label>
               <select
@@ -241,7 +307,7 @@ useEffect(() => {
                 ))}
               </select>
             </div>
-            {/* <div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Team Lead</label>
               <select
                 name="TL"
@@ -266,7 +332,7 @@ useEffect(() => {
                 placeholder="Select Developers..."
                 onChange={handleDevelopersChange}
               />
-            </div> */}
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">BAU Person</label>
               <select
@@ -279,7 +345,6 @@ useEffect(() => {
                 <option value="Aakanksha Dixit">Aakanksha Dixit</option>
               </select>
             </div>
-    
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
               <input
@@ -301,7 +366,7 @@ useEffect(() => {
               />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-4">
