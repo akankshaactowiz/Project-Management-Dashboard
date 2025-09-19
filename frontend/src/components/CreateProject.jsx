@@ -22,7 +22,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   // PM list
   useEffect(() => {
-    const loadManagers = async () => {
+    const loadManagers = async () => {  
       try {
         const res = await fetch(
           `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/pm-qa`,

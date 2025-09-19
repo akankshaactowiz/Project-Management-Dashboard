@@ -4,7 +4,37 @@ import { v4 as uuidv4 } from 'uuid';
 import Task from "../models/TaskData.js";
 import Notification from "../models/Notification.js";
 
+export const createProject = async (req, res) => {
+  try {
+    const {
+      ProjectCode,
+      ProjectName,
+      SOWFile,
+      SampleFiles,
+      PMId,
+      Frequency,
+    } = req.body;
 
+    // you can get userId from auth middleware
+    const createdBy = req.user?._id || null;
+
+    const project = new Project({
+      ProjectCode,
+      ProjectName,
+      SOWFile,
+      SampleFiles,
+      PMId,
+      Frequency,
+      CreatedBy: createdBy,
+    });
+
+    await project.save();
+    res.status(201).json({ success: true, data: project });
+  } catch (error) {
+    console.error("Error creating project:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export const getProjects = async (req, res) => {
   try {
@@ -87,18 +117,18 @@ export const getProjects = async (req, res) => {
     }
 
     // Role-based filtering
-    const userId = req.user._id;
-    const role = req.user.roleId?.name; // e.g., "superadmin", "PM", "TL", etc.
+    // const userId = req.user._id;
+    // const role = req.user.roleId?.name; // e.g., "superadmin", "PM", "TL", etc.
 
-    if (role !== "Superadmin") {
-      filter.$or = [
-        { PMId: userId },
-        { TLId: userId },
-        { DeveloperIds: userId },
-        { QAId: userId },
-        { BAUPersonId: userId },
-      ];
-    }
+    // if (role !== "Superadmin") {
+    //   filter.$or = [
+    //     { PMId: userId },
+    //     { TLId: userId },
+    //     { DeveloperIds: userId },
+    //     { QAId: userId },
+    //     { BAUPersonId: userId },
+    //   ];
+    // }
 
     // Pagination
     const parsedPage = parseInt(page, 10) || 1;
@@ -108,6 +138,7 @@ export const getProjects = async (req, res) => {
     const total = await Project.countDocuments(filter);
     const projects = await Project.find(filter)
       .populate("PMId TLId DeveloperIds QAId BAUPersonId")
+      .populate("CreatedBy", "name")
 
       .sort({ CreatedDate: -1 })
       .skip((parsedPage - 1) * parsedPageSize)
@@ -565,35 +596,3 @@ export const getProjectHistory = async (req, res) => {
 //     res.status(500).json({ message: "Server error", error: err.message });
 //   }
 // };
-
-export const createProject = async (req, res) => {
-  try {
-    const {
-      ProjectCode,
-      ProjectName,
-      SOWFile,
-      SampleFiles,
-      PMId,
-      Frequency,
-    } = req.body;
-
-    // you can get userId from auth middleware
-    const createdBy = req.user?._id || null;
-
-    const project = new Project({
-      ProjectCode,
-      ProjectName,
-      SOWFile,
-      SampleFiles,
-      PMId,
-      Frequency,
-      CreatedBy: createdBy,
-    });
-
-    await project.save();
-    res.status(201).json({ success: true, data: project });
-  } catch (error) {
-    console.error("Error creating project:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};

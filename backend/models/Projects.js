@@ -1,48 +1,3 @@
-// import mongoose from "mongoose";
-
-// // models/Project.js
-
-// const projectSchema = new mongoose.Schema(
-//   {
-//     ProjectCode: { type: String, required: true, unique: true },
-//     Frequency: { type: String, enum: ["Daily", "Weekly", "Monthly"], default: "Daily" },
-//     Platform: { type: String, required: true },
-//     Status: { type: String, default: "New" },
-//     BAU: { type: String , default: "None" },
-//     POC: { type: String, default: "None" },
-
-
-//     // --- ObjectId references ---
-//     PMId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-//     PCId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-//     TLId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-//     DeveloperIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-//     QAId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-//     BAUPersonId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-
-//     // Dates
-//     StartDate: { type: Date },   // <-- Added
-//     EndDate: { type: Date },     // <-- Added
-//     FrameworkType: { type: String, default: "N/A" },
-//     QAReportCount: { type: Number, default: 0 },
-//     ManageBy: { type: String, default: "N/A" },
-//     QARules: { type: Number, default: 0 },
-//     RulesStatus: { type: String, default: "Draft" },
-//     RulesApply: { type: String, default: "Database" },
-//     // FeedId: { type: Number, required: true },
-//     // FeedName: { type: String, required: true },
-//     ProjectName: { type: String, required: true },
-//     CreatedDate: { type: Date, default: Date.now },
-//     DBStatus: { type: String, default: "Actowizdb" },
-//     DBType: { type: String, default: "MongoDB" },
-//   },
-//   { timestamps: true }
-// );
-
-
-// export default mongoose.model("Project", projectSchema, "Project_data");
-
-
 import mongoose from "mongoose";
 import User from "./User.js";
 
@@ -72,10 +27,8 @@ const projectSchema = new mongoose.Schema({
    ProjectName: { type: String, required: true },
   CreatedDate: { type: Date, default: Date.now },
   CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  // InputFile: [{ type: String, required: true }],
-  // OutputFile: [{ type: String, required: true }],
-  
-  
+
+
   Status: { type: String, default: "New" },
   Platform: { type: String,  },
   BAU: { type: String , default: "None" },

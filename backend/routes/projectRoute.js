@@ -20,7 +20,6 @@ router.get("/", getProjects);
 router.get("/assigned-to-qa", getAssignedToQAProjects);
 router.get("/:id", protect, getProjectById);
 
-// POST new project
 router.post("/",protect, authorize("Project", "create"), createProject);
 
 router.put("/:id/update-team", protect, authorize("Project", "update"), updateProjectTeam);
