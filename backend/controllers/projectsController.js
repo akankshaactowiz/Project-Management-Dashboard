@@ -509,57 +509,91 @@ export const getProjectHistory = async (req, res) => {
 
 // CREATE new project
 
+// export const createProject = async (req, res) => {
+//   try {
+//     const {
+//       ProjectCode,
+//       ProjectName,
+//       SOWFile,
+//       SampleFiles,
+//       // InputFile,
+//       // OutputFile,
+//       Frequency,
+//       Platform,
+//       RulesStatus,
+//       PMId,
+//       TLId,
+//       DeveloperIds,
+//       QAId,
+//       BAUPersonId,
+//       StartDate,
+//       EndDate
+//     } = req.body;
+
+//     // const pmUser = PMId ? await User.findOne({ name: PMId }) : null;
+//     const tlUser = TLId ? await User.findOne({ name: TLId }) : null;
+//     // const qaUser = QAId ? await User.findOne({ name: QAId }) : null;
+//     const bauUser = BAUPersonId ? await User.findOne({ name: BAUPersonId }) : null;
+
+//     const developerUsers = DeveloperIds && DeveloperIds.length > 0
+//       ? await User.find({ name: { $in: DeveloperIds } })
+//       : [];
+
+//     const newProject = new Project({
+//       ProjectCode,
+//       ProjectName,
+//       SOWFile,
+//       SampleFiles,
+//       PMId,
+//       InputFile,
+//       OutputFile,
+//       Frequency,
+//       Platform,
+//       RulesStatus,
+//       TLId: tlUser?._id || null,
+//       DeveloperIds: developerUsers.map(u => u._id),
+//       QAId,
+//       BAUPersonId: bauUser?._id || null,
+//       StartDate: StartDate ? new Date(StartDate) : null,
+//       EndDate: EndDate ? new Date(EndDate) : null,
+//     });
+
+//     const saved = await newProject.save();
+//     res.status(201).json({ message: "Project created", project: saved });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
+
 export const createProject = async (req, res) => {
   try {
     const {
       ProjectCode,
       ProjectName,
       SOWFile,
-      InputFile,
-      OutputFile,
-      Frequency,
-      Platform,
-      RulesStatus,
+      SampleFiles,
       PMId,
-      TLId,
-      DeveloperIds,
-      QAId,
-      BAUPersonId,
-      StartDate,
-      EndDate
+      Frequency,
     } = req.body;
 
-    // const pmUser = PMId ? await User.findOne({ name: PMId }) : null;
-    const tlUser = TLId ? await User.findOne({ name: TLId }) : null;
-    // const qaUser = QAId ? await User.findOne({ name: QAId }) : null;
-    const bauUser = BAUPersonId ? await User.findOne({ name: BAUPersonId }) : null;
+    // you can get userId from auth middleware
+    const createdBy = req.user?._id || null;
 
-    const developerUsers = DeveloperIds && DeveloperIds.length > 0
-      ? await User.find({ name: { $in: DeveloperIds } })
-      : [];
-
-    const newProject = new Project({
+    const project = new Project({
       ProjectCode,
       ProjectName,
       SOWFile,
-      InputFile,
-      OutputFile,
-      Frequency,
-      Platform,
-      RulesStatus,
+      SampleFiles,
       PMId,
-      TLId: tlUser?._id || null,
-      DeveloperIds: developerUsers.map(u => u._id),
-      QAId,
-      BAUPersonId: bauUser?._id || null,
-      StartDate: StartDate ? new Date(StartDate) : null,
-      EndDate: EndDate ? new Date(EndDate) : null,
+      Frequency,
+      CreatedBy: createdBy,
     });
 
-    const saved = await newProject.save();
-    res.status(201).json({ message: "Project created", project: saved });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    await project.save();
+    res.status(201).json({ success: true, data: project });
+  } catch (error) {
+    console.error("Error creating project:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

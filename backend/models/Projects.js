@@ -64,18 +64,22 @@ const assignedFileSchema = new mongoose.Schema({
 const projectSchema = new mongoose.Schema({
   ProjectCode: { type: String, required: true, unique: true },
   Frequency: { type: String, default: "Daily" },
-  Platform: { type: String, required: true },
-
+  
   // --- SALES ---
-  SOWFile: { type: String, required: true },
-  InputFile: { type: String, required: true },
-  OutputFile: { type: String, required: true },
-
+  SOWFile: [{ type: String, required: true }],
+  SampleFiles: [{ type: String, required: true }],
+  PMId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+   ProjectName: { type: String, required: true },
+  CreatedDate: { type: Date, default: Date.now },
+  CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  // InputFile: [{ type: String, required: true }],
+  // OutputFile: [{ type: String, required: true }],
+  
   
   Status: { type: String, default: "New" },
+  Platform: { type: String,  },
   BAU: { type: String , default: "None" },
   POC: { type: String, default: "None" },
-  PMId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   PCId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   TLId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   DeveloperIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -89,12 +93,10 @@ const projectSchema = new mongoose.Schema({
   QARules: { type: Number, default: 0 },
   RulesStatus: { type: String, default: "Draft" },
   RulesApply: { type: String, default: "Database" },
-  ProjectName: { type: String, required: true },
-  CreatedDate: { type: Date, default: Date.now },
   DBStatus: { type: String, default: "Actowizdb" },
   DBType: { type: String, default: "MongoDB" },
 
-  Feeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Feed", required: true }],
+  Feeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Feed",  }],
 
   // New fields for tracking QA cycles, history, etc.
   history: [activityLogSchema],
