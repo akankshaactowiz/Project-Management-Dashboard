@@ -25,6 +25,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const departmentSelectOptions = departmentOptions.map((d) => ({
+    value: d._id || d.id,
+    label: d.name,
+  }));
+
   // helper to normalize user arrays returned by various endpoints
   const normalizeUsersResponse = (data) => {
     if (!data) return [];
@@ -47,13 +52,15 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           { credentials: "include" }
         );
         const data = await res.json();
-        const depts = Array.isArray(data) ? data : data.departments || [];
 
-        // match names like "R&D", "R & D", "R D", "Research & Development", and "Operation"/"Operations"
+        console.log("Departments API response:", data);
+
+        const depts = Array.isArray(data)
+          ? data
+          : data.departments || [];
+
         const filtered = depts.filter((d) =>
-          /(r\s*&\s*d|r\s*d|research.*development|^rnd$|^rd$|operation(s)?)/i.test(
-            (d.name || "")
-          )
+          ["R&D", "Operation"].includes(d.name?.trim())
         );
 
         setDepartmentOptions(filtered);
@@ -62,6 +69,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         setDepartmentOptions([]);
       }
     })();
+
 
     // fetch BDEs (business development executives)
     (async () => {
@@ -94,7 +102,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       try {
         // assuming backend supports this endpoint (based on your reference code)
         const res = await fetch(
-          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/by-role?roleName=Manager&departmentId=${deptId}`,
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/by-role-department?roleName=Manager&departmentId=${form.Department}`,
           { credentials: "include" }
         );
         const data = await res.json();
@@ -305,30 +313,17 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               </label>
               <Select
                 name="Department"
-                value={
-                  form.Department
-                    ? {
-                        value: form.Department,
-                        label:
-                          departmentOptions.find((d) => d._id === form.Department)
-                            ?.name || "Selected",
-                      }
-                    : null
-                }
+                value={departmentSelectOptions.find(opt => opt.value === form.Department) || null}
                 onChange={(selected) =>
-                  handleChange({
-                    target: { name: "Department", value: selected?.value || "" },
-                  })
+                  handleChange({ target: { name: "Department", value: selected?.value || "" } })
                 }
-                options={departmentOptions.map((d) => ({
-                  value: d._id,
-                  label: d.name,
-                }))}
+                options={departmentSelectOptions}
                 placeholder="Select Department"
                 isClearable
                 isSearchable
                 className="w-full"
               />
+
             </div>
 
             {/* Project Manager */}
@@ -341,9 +336,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 value={
                   form.PM
                     ? {
-                        value: form.PM,
-                        label: pmOptions.find((u) => u._id === form.PM)?.name,
-                      }
+                      value: form.PM,
+                      label: pmOptions.find((u) => u._id === form.PM)?.name,
+                    }
                     : null
                 }
                 onChange={(selected) =>
@@ -370,9 +365,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 value={
                   form.BDE
                     ? {
-                        value: form.BDE,
-                        label: bdeOptions.find((u) => u._id === form.BDE)?.name,
-                      }
+                      value: form.BDE,
+                      label: bdeOptions.find((u) => u._id === form.BDE)?.name,
+                    }
                     : null
                 }
                 onChange={(selected) =>
@@ -388,6 +383,17 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 className="w-full"
               />
             </div>
+
+            <div>
+              <label htmlFor="bau-started" className="block mb-1">BAU started</label>
+              <input
+                id="bau-started"
+                type="datetime-local"
+                onChange={(e) => setForm({ ...form, BAUstarted: e.target.value })}
+                className="flex-1 bg-gray-100 rounded p-2"
+              />
+            </div>
+
           </div>
         </div>
 

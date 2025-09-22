@@ -19,26 +19,64 @@ const sendAuthResponse = (res, user, statusCode = 200) => {
   return res.status(statusCode).json(resp);
 };
 
-export const getUsersByRoleAndDepartment = async (req, res) => {
-  const { roleName, departmentId, } = req.query;
+// export const getUsersByRoleAndDepartment = async (req, res) => {
+//   const { roleName, departmentId, department } = req.query;
   
 
+//   try {
+//     const role = await Role.findOne({ name: roleName });
+//     if (!role) {
+//       return res.status(400).json({ message: "Invalid role name" });
+//     }
+
+//     const department = await Department.findById(departmentId);
+//     if (!department) {
+//       console.log("Invalid department ID:", departmentId);
+//       return res.status(400).json({ message: "Invalid department" });
+      
+//     }else if (department) {
+//   department = await Department.findOne({ name: department });
+//    }
+
+//     const users = await User.find({
+//       roleId: role._id,
+//       departmentId: department._id
+//     });
+
+//     return res.json(users);
+//   } catch (error) {
+//     console.error("Error fetching users by role and department:", error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+export const getUsersByRoleAndDepartment = async (req, res) => {
+  const { roleName, departmentId, departmentName } = req.query;
+
   try {
+    // Find role
     const role = await Role.findOne({ name: roleName });
     if (!role) {
       return res.status(400).json({ message: "Invalid role name" });
     }
 
-    const department = await Department.findById(departmentId);
-    if (!department) {
-      console.log("Invalid department ID:", departmentId);
-      return res.status(400).json({ message: "Invalid department" });
-      
+    let departmentDoc = null;
+
+    if (departmentId) {
+      departmentDoc = await Department.findById(departmentId);
+    } else if (departmentName) {
+      departmentDoc = await Department.findOne({ name: departmentName });
     }
 
+    if (!departmentDoc) {
+      console.log("Invalid department:", departmentId || departmentName);
+      return res.status(400).json({ message: "Invalid department" });
+    }
+
+    // Fetch users
     const users = await User.find({
       roleId: role._id,
-      departmentId: department._id
+      departmentId: departmentDoc._id,
     });
 
     return res.json(users);
