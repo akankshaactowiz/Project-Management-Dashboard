@@ -211,7 +211,7 @@ router.get("/", async (req, res) => {
 // Watcher user routes
 router.get("/search", getSearchUsers);
 
-router.get("/by-role", protect, authorize("Users", "create"), getUsersByRoleAndDepartment);
+router.get("/by-role", protect, getUsersByRoleAndDepartment);
 
 router.get("/pm-qa", protect, getPMAndQAUsers);
 

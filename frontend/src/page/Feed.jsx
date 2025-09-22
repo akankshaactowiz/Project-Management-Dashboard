@@ -246,7 +246,7 @@ export default function FeedPage() {
                     <td
                       className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
                       onClick={() =>
-                        (window.location.href = `/feed/${row._id}`)
+                        (window.location.href = `/project/feed/${row._id}`)
                       }
                     >
                       {row.FeedName ?? "-"}

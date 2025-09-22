@@ -2,8 +2,12 @@ import mongoose from "mongoose";
 
 const WorkReportSchema = new mongoose.Schema(
   {
-    project: { type: String, required: true },
-    feed: { type: String, required: true },
+    project: { type: String,
+      //  required: true 
+      },
+    feed: { type: String, 
+      // required: true 
+    },
     taskType: { type: String, required: true },
     task: { type: String, default: "None" },
     assignedBy: { type: String, default: "None" }, // could be manager/lead name

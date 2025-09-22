@@ -33,8 +33,7 @@ export const protect = async (req, res, next) => {
     if (!user || !user.roleId) {
       return res.status(401).json({ message: "User or role not found" });
     }
-
-    req.user = user;
+     req.user = user;
     next();
   } catch (err) {
     console.error("Auth error:", err.message || err);

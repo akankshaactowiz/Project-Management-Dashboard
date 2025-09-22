@@ -31,7 +31,9 @@ export const getUsersByRoleAndDepartment = async (req, res) => {
 
     const department = await Department.findById(departmentId);
     if (!department) {
+      console.log("Invalid department ID:", departmentId);
       return res.status(400).json({ message: "Invalid department" });
+      
     }
 
     const users = await User.find({
@@ -74,12 +76,18 @@ export const registerUser = async (req, res) => {
         return res.status(400).json({ message: "Manager is required for Team Lead" });
       }
     }
-
+    
     if (role.name === "Developer") {
       if (!managerId || !leadId) {
         return res.status(400).json({ message: "Manager and Team Lead are required for Developer" });
       }
     }
+
+    // if (role.name === "Business Development Executive") {
+    //   if (!managerId) {
+    //     return res.status(400).json({ message: "Manager is required for Business Development Executive" });
+    //   }
+    // }
 
     // ✅ Create user with managerId and teamLeadId if applicable
     let newUser = await User.create({

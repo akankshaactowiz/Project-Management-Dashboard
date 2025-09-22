@@ -56,7 +56,7 @@ export default function Projects() {
 
   const [feedModalOpen, setFeedModalOpen] = useState(false);
   const [feeds, setFeeds] = useState([]);
-
+  const [status, setStatus] = useState("All");
   // const [qaModalOpen, setQaModalOpen] = useState(false);
 
   const [openRow, setOpenRow] = useState(null);
@@ -146,10 +146,11 @@ export default function Projects() {
 
   useEffect(() => {
     const fetchFeeds = async () => {
+      const status = activeStatus !== "All" ? activeStatus : "";
       try {
         setLoading(true);
         const res = await fetch(
-          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed?page=1&limit=10`,
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed?page=1&limit=10&status=${status}`,
           {
             credentials: "include",
           }
@@ -169,7 +170,7 @@ export default function Projects() {
     };
 
     fetchFeeds();
-  }, []);
+  }, [status]);
 
   // Manually define column headers
   const columns = [
@@ -195,7 +196,9 @@ export default function Projects() {
     "DB Status",
     "DB Type",
     "Created Date",
-    "Created By"
+    "Created By",
+    "Actions",
+
   ];
 
   return (
@@ -485,7 +488,132 @@ export default function Projects() {
           </div>
         )}
 
-        {user?.roleName === "Manager" && (
+        {user?.roleName === "Manager" &&(
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <table className="min-w-full divide-y divide-gray-200 ">
+              <thead className="bg-gray-100 text-gray-700 sticky top-0">
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={col}
+                      className="px-3 py-2 text-left font-semibold whitespace-nowrap"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-8 text-gray-500"
+                    >
+                      <div className="flex justify-center items-center">
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                        {/* <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span> */}
+                      </div>
+                    </td>
+                  </tr>
+                ) : feeds.length > 0 ? (
+                  feeds.map((row, idx) => (
+                    <tr
+                      key={row._id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+
+                      {/* <td className="px-3 py-2">{row.No ?? "-"}</td> */}
+                      <td className="px-3 py-2">{idx + 1}</td>
+                      {/* <td className="px-3 py-2">{row.ProjectName ?? "-"}</td> */}
+                      <td className="px-3 py-2">
+                        {row.projectId?.ProjectCode && row.projectId?.ProjectName
+                          ? `[${row.projectId.ProjectCode}] ${row.projectId.ProjectName}`
+                          : "-"}
+                      </td>
+
+                      <td
+                        className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
+                        onClick={() =>
+                          (window.location.href = `/feed/${row._id}`)
+                        }
+                      >
+                        {row.FeedName ?? "-"}
+                      </td>
+                      <td className="px-3 py-2">{row.projectId?.Frequency ?? "-"}</td>
+                      {/* <td className="px-3 py-2">{row.projectId?.Platform ?? "-"}</td> */}
+                      <td className="px-3 py-2">
+                        {row.DomainName && row.ApplicationType && row.CountryName
+                          ? `${row.DomainName}|${row.ApplicationType}|${row.CountryName}`
+                          : "-"}
+                      </td>
+                      <td className="px-3 py-2">{row.projectId?.Status ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.BAU ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.POC ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.PMId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.PC ?? "-"}</td>
+                      <td className="px-3 py-2">{row?.TLId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row?.DeveloperIds?.length
+                        ? row.DeveloperIds.map(dev => dev.name).join(", ")
+                        : "-"}</td>
+                      <td className="px-3 py-2">{row?.QAId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.BAUPerson ?? "-"}</td>
+                      <td className="px-3 py-2">{row.FeedId ?? "-"}</td>
+                      <td className="px-3 py-2">
+                        {row.projectId?.FrameworkType ?? "-"}
+                      </td>
+                      <td className="px-3 py-2">
+                        {row.projectId?.QAReportCount ?? "-"}
+                      </td>
+                      <td className="px-3 py-2">{row.projectId?.ManageBy ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.QARules ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.DBStatus ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.DBType ?? "-"}</td>
+                      <td className="px-3 py-2"> {row.createdDate ? new Date(row.createdDate).toLocaleDateString() : "-"}</td>
+                      <td className="px-3 py-2">{row?.createdBy.name ?? "-"}</td>
+                      <td className="px-3 py-2">
+                        <button>
+                          <span
+                            className="text-blue-600 cursor-pointer hover:underline"
+                            // onClick={() =>
+                            //   (window.location.href = `/feed/${row._id}`)
+                            // }
+                          >
+                            Assign Feed to QA
+                          </span>
+                        </button>
+                      </td>
+                      {/* <td className="px-3 py-2"></td> */}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-8 text-gray-500"
+                    >
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <img
+                          src={Img}
+                          alt="No data"
+                          className="w-32 h-32 object-contain opacity-80"
+                        />
+                        <p className="font-semibold text-lg text-gray-600">
+                          No Data Found
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Try adding new feeds to see them here.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {user?.roleName === "Team Lead" &&(
           // <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
           //   <table className="min-w-full divide-y divide-gray-200">
           //     <thead className="bg-gray-100 text-gray-700 sticky top-0">
@@ -747,7 +875,7 @@ export default function Projects() {
           </div>
         )}
 
-        {user?.department !== "Sales" && user?.roleName !== "Manager" && (
+        {user?.department !== "Sales" && user?.roleName !== "Manager" && user?.roleName !== "Team Lead" && (
 
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -995,6 +1123,7 @@ export default function Projects() {
             </table>
           </div>
         )}
+        
 
         {/* Pagination */}
         <Pagination

@@ -24,8 +24,11 @@ const projectSchema = new mongoose.Schema({
   SOWFile: [{ type: String, required: true }],
   SampleFiles: [{ type: String, required: true }],
   PMId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-   ProjectName: { type: String, required: true },
+  ProjectName: { type: String, required: true },
+  BDEId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  DepartmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
   CreatedDate: { type: Date, default: Date.now },
+  BAUStartDate: { type: Date },
   CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
 

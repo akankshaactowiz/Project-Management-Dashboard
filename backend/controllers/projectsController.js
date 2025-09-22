@@ -12,6 +12,8 @@ export const createProject = async (req, res) => {
       SOWFile,
       SampleFiles,
       PMId,
+      BDEId,
+      DepartmentId: Department,
       Frequency,
     } = req.body;
 
@@ -24,6 +26,8 @@ export const createProject = async (req, res) => {
       SOWFile,
       SampleFiles,
       PMId,
+      BDEId,
+      Department,
       Frequency,
       CreatedBy: createdBy,
     });

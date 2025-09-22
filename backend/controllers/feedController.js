@@ -216,18 +216,18 @@ export const getFeeds = async (req, res) => {
     }
 
     // Role-based filtering
-    // const userId = req.user._id;
-    // const role = req.user.roleId?.name; // e.g., "superadmin", "PM", "TL", etc.
+    const userId = req.user._id;
+    const role = req.user.roleId?.name; // e.g., "superadmin", "PM", "TL", etc.
 
-    // if (role !== "Superadmin") {
-    //   filter.$or = [
-    //     { PMId: userId },
-    //     { TLId: userId },
-    //     { DeveloperIds: userId },
-    //     { QAId: userId },
-    //     { BAUPersonId: userId },
-    //   ];
-    // }
+    if (role !== "Superadmin") {
+      filter.$or = [
+        { PMId: userId },
+        { TLId: userId },
+        { DeveloperIds: userId },
+        { QAId: userId },
+        { BAUPersonId: userId },
+      ];
+    }
 
     // Pagination
     const parsedPage = parseInt(page, 10) || 1;
