@@ -44,7 +44,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users",protect, 
   // authorize("Users", "view"),  
   userRoutes)
-app.use("/api/feed",protect, authorize("Feed", "view"), feedDataRoute);
+app.use("/api/feed",protect, feedDataRoute);
 app.use("/api/escalations", protect, authorize("Escalation", "view"), escalationRoute);
 app.use("/api/qa",protect, authorize("QA", "view"), QaRoute);
 app.use("/api/tasks",protect, authorize("Tasks", "view"), TaskRoute);

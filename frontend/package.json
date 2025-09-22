@@ -14,6 +14,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "@uiw/react-md-editor": "^4.0.8",
     "chart.js": "^4.5.0",
+    "country-list": "^2.4.1",
     "datatables.net": "^2.3.4",
     "datatables.net-dt": "^2.3.4",
     "date-fns": "^4.1.0",

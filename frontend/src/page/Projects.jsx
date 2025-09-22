@@ -9,6 +9,7 @@ import { exportData } from "../utils/exportUtils";
 import { useAuth } from "../hooks/useAuth";
 import Model from "../components/CreateProject";
 import AssignQAModal from "../components/AssignToQa";
+import FeedModel from "../components/CreateFeed";
 
 // import QaActionsModal from "../components/QAActionModel";
 
@@ -53,7 +54,10 @@ export default function Projects() {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
 
-  const [qaModalOpen, setQaModalOpen] = useState(false);
+  const [feedModalOpen, setFeedModalOpen] = useState(false);
+  const [feeds, setFeeds] = useState([]);
+
+  // const [qaModalOpen, setQaModalOpen] = useState(false);
 
   const [openRow, setOpenRow] = useState(null);
   // const [selectedProject, setSelectedProject] = useState(null);
@@ -69,6 +73,9 @@ export default function Projects() {
     !(user?.department === "QA" && user?.roleName === "Manager");
 
 
+  const canCreateFeed = user?.permissions?.some(
+    (perm) => perm.module === "Feed" && perm.actions.includes("create")
+  );
   // Fetch projects using filters
 
   const fetchProjects = async () => {
@@ -93,7 +100,7 @@ export default function Projects() {
       if (response.ok) {
         setData(result.data || []);
         setPageSize(result.pageSize);
-        setCurrentPage(result.page || 1); 
+        setCurrentPage(result.page || 1);
         setTotalPages(Math.ceil(result.total / result.pageSize) || 1);
         // fetchProjects();
       } else {
@@ -111,35 +118,85 @@ export default function Projects() {
     fetchProjects();
   }, [activeTab, activeStatus, entries, pageSize, currentPage, search]);
 
+  // const columns = [
+  //   "No",
+  //   "Project Code",
+  //   "Project Name",
+  //   "Frequency",
+  //   "Platform",
+  //   "Status",
+  //   "BAU",
+  //   "POC",
+  //   "PM",
+  //   "TL",
+  //   "Developer",
+  //   "QA",
+  //   "BAU Person",
+  //   "Framework type",
+  //   "QA Report Count",
+  //   "Manage By",
+  //   "QA Rules",
+  //   // "DB Status",
+  //   // "DB Type",
+  //   "Created Date",
+
+  //   "Actions",
+  // ];
+
+
+  useEffect(() => {
+    const fetchFeeds = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed?page=1&limit=10`,
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+
+        const data = await res.json();
+        console.log(data)
+        setFeeds(data.data || []);
+        setTotalPages(data.totalPages || 1);
+      } catch (err) {
+        console.error("Error fetching feed data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeeds();
+  }, []);
+
+  // Manually define column headers
   const columns = [
     "No",
-    "Project Code",
     "Project Name",
+    "Feed Name",
     "Frequency",
     "Platform",
     "Status",
     "BAU",
     "POC",
     "PM",
+    "PC",
     "TL",
     "Developer",
     "QA",
     "BAU Person",
+    "Feed ID",
     "Framework type",
     "QA Report Count",
     "Manage By",
     "QA Rules",
-    // "DB Status",
-    // "DB Type",
+    "DB Status",
+    "DB Type",
     "Created Date",
-
-    "Actions",
+    "Created By"
   ];
-
-  const onPageChange = (newPage) => {
-    setCurrentPage(newPage);
-    fetchProjects(newPage);
-  };
 
   return (
     <>
@@ -164,7 +221,19 @@ export default function Projects() {
               + Create Project
             </button>
           )}
+
+          {canCreateFeed && (
+            <button
+              className="ml-auto bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
+              onClick={() => setFeedModalOpen(true)}
+            >
+              + Create Feed
+            </button>
+          )}
         </div>
+        {feedModalOpen && (
+          <FeedModel isOpen={feedModalOpen} onClose={() => setFeedModalOpen(false)} />
+        )}
 
         {/* Modal */}
         {isModalOpen && (
@@ -173,19 +242,19 @@ export default function Projects() {
 
         {/* Status Tabs */}
         {user?.department !== "Sales" && (
-          
-        <div className="border-b border-gray-200 mb-4 overflow-x-auto whitespace-nowrap">
-          {statusTabs.map((status) => (
-            <button
-              key={status.key}
-              onClick={() => setActiveStatus(status.key)}
-              className={`inline-block px-4 py-2 text-xs font-medium transition-colors duration-200 ${activeStatus === status.key ? "border-b-2 border-purple-800 text-purple-800" : "text-gray-500"
-                }`}
-            >
-              {status.label}
-            </button>
-          ))}
-        </div>
+
+          <div className="border-b border-gray-200 mb-4 overflow-x-auto whitespace-nowrap">
+            {statusTabs.map((status) => (
+              <button
+                key={status.key}
+                onClick={() => setActiveStatus(status.key)}
+                className={`inline-block px-4 py-2 text-xs font-medium transition-colors duration-200 ${activeStatus === status.key ? "border-b-2 border-purple-800 text-purple-800" : "text-gray-500"
+                  }`}
+              >
+                {status.label}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* Controls */}
@@ -415,7 +484,270 @@ export default function Projects() {
             </table>
           </div>
         )}
-        {user?.department !== "Sales" && (
+
+        {user?.roleName === "Manager" && (
+          // <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+          //   <table className="min-w-full divide-y divide-gray-200">
+          //     <thead className="bg-gray-100 text-gray-700 sticky top-0">
+          //       <tr>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created By</th>
+          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created Date</th>
+
+          //       </tr>
+          //     </thead>
+          //     <tbody>
+          //       {loading ? (
+          //         <tr>
+          //           <td
+          //             colSpan={columns.length}
+          //             className="text-center p-4 text-gray-500"
+          //           >
+          //             <div className="flex justify-center items-center">
+          //               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-blue-600"></div>
+          //             </div>
+          //           </td>
+          //         </tr>
+          //       ) : data.length > 0 ? (
+          //         data.map((row, idx) => (
+          //           <tr
+          //             key={row._id || idx}
+          //             className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+          //           >
+          //             <td className="px-3 py-2">{(currentPage - 1) * pageSize + idx + 1}</td>
+          //             <td className="px-3 py-2">{row.ProjectCode ?? "-"}</td>
+          //             <td
+          //               className="px-3 py-2 cursor-pointer text-blue-600 hover:text-blue-800"
+          //               onClick={() => {
+          //                 if (user.roleName !== "Developer") {
+          //                   navigate(`/project/feed`);
+          //                 }
+          //               }}
+          //             >
+          //               {row.ProjectName ?? "-"}
+          //             </td>
+          //             <td className="px-3 py-2" >
+          //               <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
+          //                 {row.SOWFile ?? "-"}
+          //               </a>
+          //             </td>
+          //             {/* <td className="px-3 py-2"> 
+          //             <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
+          //               {row.SampleFiles ?? "-"}
+          //             </a>
+          //           </td> */}
+          //             <td className="px-3 py-2 relative">
+          //               {row.SampleFiles && row.SampleFiles.length > 0 ? (
+          //                 <div
+          //                   style={{ display: "inline-block", position: "relative" }}
+          //                   onMouseEnter={() => setOpenRow(idx)}
+          //                   onMouseLeave={() => setOpenRow(null)}
+          //                 >
+          //                   <span
+          //                     style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
+          //                   >
+          //                     {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Files`}
+          //                   </span>
+
+          //                   {openRow === idx && (
+          //                     <div
+          //                       style={{
+          //                         position: "absolute",
+          //                         top: "100%",
+          //                         left: 0,
+          //                         marginTop: "0.25rem",
+          //                         minWidth: "180px",
+          //                         maxHeight: "200px",
+          //                         overflowY: "auto",
+          //                         backgroundColor: "#fff",
+          //                         border: "1px solid #e5e7eb",
+          //                         borderRadius: "0.5rem",
+          //                         boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+          //                         padding: "0.5rem",
+          //                         zIndex: 50,
+          //                       }}
+          //                     >
+          //                       <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
+          //                         {row.SampleFiles.map((file, fileIdx) => (
+          //                           <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
+          //                             <a
+          //                               href={file}
+          //                               target="_blank"
+          //                               rel="noopener noreferrer"
+          //                               style={{
+          //                                 display: "block",
+          //                                 color: "#2563eb",
+          //                                 textDecoration: "none",
+          //                                 whiteSpace: "nowrap",
+          //                                 overflow: "hidden",
+          //                                 textOverflow: "ellipsis",
+          //                               }}
+          //                             >
+          //                               {/* Link {fileIdx + 1} */}
+          //                               {file}
+          //                             </a>
+          //                           </li>
+          //                         ))}
+          //                       </ul>
+          //                     </div>
+          //                   )}
+          //                 </div>
+          //               ) : (
+          //                 <span style={{ color: "#9ca3af" }}>-</span>
+          //               )}
+          //             </td>
+
+          //             <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
+          //             <td className="px-3 py-2">{row.PMId?.name ?? "-"}</td>
+          //             <td className="px-3 py-2">{row.CreatedBy?.name ?? "-"}</td>
+          //             <td className="px-3 py-2">{new Date(row.CreatedDate).toLocaleDateString() ?? "-"}</td>
+
+          //           </tr>
+          //         ))
+          //       ) : (
+          //         <tr>
+          //           <td
+          //             colSpan={columns.length}
+          //             className="text-center p-8 text-gray-500"
+          //           >
+          //             <div className="flex flex-col items-center justify-center gap-3">
+          //               <img
+          //                 src={Img}
+          //                 alt="No data"
+          //                 className="w-32 h-32 object-contain opacity-80"
+          //               />
+          //               <p className="font-semibold text-lg text-gray-600">
+          //                 No Data Found
+          //               </p>
+          //               <p className="text-sm text-gray-400">
+          //                 Try adding new projects to see them here.
+          //               </p>
+          //             </div>
+          //           </td>
+          //         </tr>
+          //       )}
+          //     </tbody>
+          //   </table>
+          // </div>
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <table className="min-w-full divide-y divide-gray-200 ">
+              <thead className="bg-gray-100 text-gray-700 sticky top-0">
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={col}
+                      className="px-3 py-2 text-left font-semibold whitespace-nowrap"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-8 text-gray-500"
+                    >
+                      <div className="flex justify-center items-center">
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                        {/* <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span> */}
+                      </div>
+                    </td>
+                  </tr>
+                ) : feeds.length > 0 ? (
+                  feeds.map((row, idx) => (
+                    <tr
+                      key={row._id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+
+                      {/* <td className="px-3 py-2">{row.No ?? "-"}</td> */}
+                      <td className="px-3 py-2">{idx + 1}</td>
+                      {/* <td className="px-3 py-2">{row.ProjectName ?? "-"}</td> */}
+                      <td className="px-3 py-2">
+                        {row.projectId?.ProjectCode && row.projectId?.ProjectName
+                          ? `[${row.projectId.ProjectCode}] ${row.projectId.ProjectName}`
+                          : "-"}
+                      </td>
+
+                      <td
+                        className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
+                        onClick={() =>
+                          (window.location.href = `/feed/${row._id}`)
+                        }
+                      >
+                        {row.FeedName ?? "-"}
+                      </td>
+                      <td className="px-3 py-2">{row.projectId?.Frequency ?? "-"}</td>
+                      {/* <td className="px-3 py-2">{row.projectId?.Platform ?? "-"}</td> */}
+                      <td className="px-3 py-2">
+                        {row.DomainName && row.ApplicationType && row.CountryName
+                          ? `${row.DomainName}|${row.ApplicationType}|${row.CountryName}`
+                          : "-"}
+                      </td>
+                      <td className="px-3 py-2">{row.projectId?.Status ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.BAU ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.POC ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.PMId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.PC ?? "-"}</td>
+                      <td className="px-3 py-2">{row?.TLId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row?.DeveloperIds?.length
+                        ? row.DeveloperIds.map(dev => dev.name).join(", ")
+                        : "-"}</td>
+                      <td className="px-3 py-2">{row?.QAId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.BAUPerson ?? "-"}</td>
+                      <td className="px-3 py-2">{row.FeedId ?? "-"}</td>
+                      <td className="px-3 py-2">
+                        {row.projectId?.FrameworkType ?? "-"}
+                      </td>
+                      <td className="px-3 py-2">
+                        {row.projectId?.QAReportCount ?? "-"}
+                      </td>
+                      <td className="px-3 py-2">{row.projectId?.ManageBy ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.QARules ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.DBStatus ?? "-"}</td>
+                      <td className="px-3 py-2">{row.projectId?.DBType ?? "-"}</td>
+                      <td className="px-3 py-2"> {row.createdDate ? new Date(row.createdDate).toLocaleDateString() : "-"}</td>
+                      <td className="px-3 py-2">{row?.createdBy.name ?? "-"}</td>
+                      {/* <td className="px-3 py-2"></td> */}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-8 text-gray-500"
+                    >
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <img
+                          src={Img}
+                          alt="No data"
+                          className="w-32 h-32 object-contain opacity-80"
+                        />
+                        <p className="font-semibold text-lg text-gray-600">
+                          No Data Found
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Try adding new feeds to see them here.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {user?.department !== "Sales" && user?.roleName !== "Manager" && (
 
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -485,7 +817,7 @@ export default function Projects() {
                         className="px-3 py-2 cursor-pointer text-blue-600 hover:text-blue-800"
                         onClick={() => {
                           if (user.roleName !== "Developer") {
-                            navigate(`/project/${row._id}`);
+                            navigate(`/project/feed`);
                           }
                         }}
                       >
@@ -669,7 +1001,7 @@ export default function Projects() {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
-          
+
         />
       </div>
     </>

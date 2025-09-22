@@ -1,13 +1,77 @@
 import React, { useState, useEffect } from "react";
+import Select from "react-select";
+import { getData } from "country-list";
 
 function CreateFeed({ onClose, onSuccess }) {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState("");
   const [feedId, setFeedId] = useState("");
   const [feedName, setFeedName] = useState("");
+  const [domainName, setDomainName] = useState("");
+  const [applicationType, setApplicationType] = useState("");
+  const [country, setCountry] = useState(null);
+
+  const [tlId, setTlId] = useState(null);
+  const [qaId, setQaId] = useState(null);
+  const [devId, setDevId] = useState([]); // ✅ should be array for multi-select
+  const [bauPerson, setBauPerson] = useState("");
+
   const [loading, setLoading] = useState(false);
 
-  // Fetch projects for dropdown
+  const [qaOptions, setQaOptions] = useState([]);
+  const [tlOptions, setTlOptions] = useState([]);
+  const [devOptions, setDevOptions] = useState([]);
+
+  const countryOptions = getData().map((c) => ({
+    value: c.code,
+    label: c.name,
+  }));
+
+  // Fetch QA managers
+  useEffect(() => {
+    const loadQaManagers = async () => {
+      try {
+        const res = await fetch(
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/pm-qa`,
+          { credentials: "include" }
+        );
+        if (!res.ok) throw new Error("Failed to fetch managers");
+
+        const data = await res.json();
+        setQaOptions(data.qaUsers || []);
+      } catch (err) {
+        console.error(err);
+        setQaOptions([]);
+      }
+    };
+
+    loadQaManagers();
+  }, []);
+
+  // Fetch developers and TL
+  useEffect(() => {
+    const loadDevelopers = async () => {
+      try {
+        const res = await fetch(
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/tl-dev`,
+          { credentials: "include" }
+        );
+        if (!res.ok) throw new Error("Failed to fetch developers");
+
+        const data = await res.json();
+        setTlOptions(data.tlUsers || []);
+        setDevOptions(data.devUsers || []);
+      } catch (err) {
+        console.error(err);
+        setTlOptions([]);
+        setDevOptions([]);
+      }
+    };
+
+    loadDevelopers();
+  }, []);
+
+  // Fetch projects
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -29,38 +93,44 @@ function CreateFeed({ onClose, onSuccess }) {
     fetchProjects();
   }, []);
 
-  // Save feed
   const handleSave = async () => {
-    if (!projectId || !feedId || !feedName) {
-      alert("Please fill all required fields");
-      return;
-    }
-
-    setLoading(true);
     try {
+      setLoading(true);
+
+      const payload = {
+        projectId,
+        FeedName: feedName,
+        FeedId: feedId,
+        DomainName: domainName,
+        ApplicationType: applicationType,
+        CountryName: country?.label,
+        TLId: tlId?.value || null,
+        QAId: qaId?.value || null,
+        DeveloperIds: devId.map((d) => d.value),
+        // BAUPersonId: bauPerson || null,  
+      };
+
       const response = await fetch(
-        `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed/${projectId}`,
+        `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            FeedName: feedName,
-            FeedId: feedId,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
       const result = await response.json();
+
       if (response.ok) {
-        onSuccess?.(result.feed); // callback for parent to refresh list
+        alert("Feed created successfully!");
+        onSuccess?.(result.data);
         onClose();
       } else {
         alert(result.message || "Failed to create feed");
       }
     } catch (err) {
-      console.error("Error creating feed:", err);
-      alert("Something went wrong");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -77,7 +147,7 @@ function CreateFeed({ onClose, onSuccess }) {
             Feed Details
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Project Dropdown */}
+            {/* Project */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Project
@@ -126,6 +196,125 @@ function CreateFeed({ onClose, onSuccess }) {
                 className="w-full bg-gray-100 rounded p-2"
               />
             </div>
+
+            {/* Domain */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Domain Name
+              </label>
+              <input
+                type="text"
+                value={domainName}
+                onChange={(e) => setDomainName(e.target.value)}
+                placeholder="Domain Name"
+                className="w-full bg-gray-100 rounded p-2"
+              />
+            </div>
+
+            {/* Application Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Application Type
+              </label>
+              <select
+                value={applicationType}
+                onChange={(e) => setApplicationType(e.target.value)}
+                className="w-full bg-gray-100 rounded p-2"
+              >
+                <option value="" disabled>
+                  Select type
+                </option>
+                <option value="Web">Web</option>
+                <option value="Mobile">App</option>
+              </select>
+            </div>
+
+            {/* Country */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Country Name
+              </label>
+              <Select
+                name="country"
+                options={countryOptions}
+                value={country}
+                onChange={setCountry}
+                isSearchable
+                placeholder="Select Country"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Info */}
+        <div className="mb-6">
+          <h3 className="mb-4 bg-purple-200 text-purple-700 px-3 py-2 rounded-md text-md font-semibold">
+            Additional Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* QA */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                QA Person
+              </label>
+              <Select
+                options={qaOptions.map((u) => ({
+                  value: u._id,
+                  label: u.name,
+                }))}
+                value={qaId}
+                onChange={setQaId}
+                placeholder="Select QA"
+              />
+            </div>
+
+            {/* TL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Team Lead
+              </label>
+              <Select
+                options={tlOptions.map((u) => ({
+                  value: u._id,
+                  label: u.name,
+                }))}
+                value={tlId}
+                onChange={setTlId}
+                placeholder="Select Team Lead"
+              />
+            </div>
+
+            {/* Devs */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Developers
+              </label>
+              <Select
+                isMulti
+                options={devOptions.map((u) => ({
+                  value: u._id,
+                  label: u.name,
+                }))}
+                value={devId}
+                onChange={setDevId}
+                placeholder="Select Developers..."
+              />
+            </div>
+
+            {/* BAU */}
+            {/* <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                BAU Person
+              </label>
+              <select
+                value={bauPerson}
+                onChange={(e) => setBauPerson(e.target.value)}
+                className="w-full bg-gray-100 rounded p-2"
+              >
+                <option value="">Select Person</option>
+                <option value="Aakanksha Dixit">Aakanksha Dixit</option>
+              </select>
+            </div> */}
           </div>
         </div>
 

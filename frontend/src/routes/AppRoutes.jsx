@@ -37,7 +37,8 @@ function AppRoutes() {
           <Route path="/project" element={<ProtectedRoute requiredModule="Project" requiredAction="view"><Project /></ProtectedRoute>} />
           <Route path="/project/:id" element={<ProtectedRoute requiredModule="Project" requiredAction="view"><ProjectInfo /></ProtectedRoute>} ></Route>
           {/* <Route path="/project/:id/details" element={<ProtectedRoute requiredModule="Project" requiredAction="update"><ProjectInfo /></ProtectedRoute>} key="project-update"></Route> */}
-          <Route path="/feed" element={<ProtectedRoute requiredModule="Feed" requiredAction="view"><FeedPage /></ProtectedRoute>} />
+          <Route path="/project/feed" element={
+            <FeedPage />} />
           <Route path="/feed/:id" element={<ProtectedRoute requiredModule="Feed" requiredAction="update"><FeedDetails /></ProtectedRoute>} key="feed"></Route>
           <Route path="/feed/:id/update" element={<ProtectedRoute requiredModule="Feed" requiredAction="update"><FeedUpdate /></ProtectedRoute>} key="feed-update"></Route>
           <Route path="/escalation" element={<ProtectedRoute requiredModule="Escalation" requiredAction="view"><Escalations /></ProtectedRoute>} />
