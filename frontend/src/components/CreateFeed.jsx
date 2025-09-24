@@ -255,7 +255,7 @@ function CreateFeed({ onClose, onSuccess }) {
             {/* QA */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                QA Person
+                QA Manager
               </label>
               <Select
                 options={qaOptions.map((u) => ({

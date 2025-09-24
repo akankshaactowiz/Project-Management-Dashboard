@@ -80,6 +80,11 @@ export const createFeed = async (req, res) => {
 
     await newFeed.save();
 
+    // Add feed to project's Feeds array
+    await Project.findByIdAndUpdate(projectId, {
+      $push: { Feeds: newFeed._id },
+    });
+
     res.status(201).json({
       success: true,
       message: "Feed created successfully.",
@@ -279,6 +284,34 @@ export const getFeedById = async (req, res) => {
 };
 
 // Update feed details
+// export const updateFeedById = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({ message: "Invalid feed ID" });
+//     }
+
+//     console.log("Update ID:", id);
+//     console.log("Update body:", req.body);
+
+//     const updatedFeed = await FeedData.findOneAndUpdate(
+//       { _id: id },
+//       { $set: req.body },
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!updatedFeed) {
+//       return res.status(404).json({ message: "Feed not found" });
+//     }
+
+//     res.status(200).json(updatedFeed);
+//   } catch (err) {
+//     console.error("Error updating feed:", err);
+//     res.status(500).json({ error: "Failed to update feed" });
+//   }
+// };
+
 export const updateFeedById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -287,12 +320,46 @@ export const updateFeedById = async (req, res) => {
       return res.status(400).json({ message: "Invalid feed ID" });
     }
 
+    const {
+      Frequency,
+      TimelineTime,
+      TimelineDay,
+      TimelineDate,
+      ...otherFields
+    } = req.body;
+
+    // Validate frequency-related fields
+    const updateData = { ...otherFields };
+    if (Frequency) {
+      updateData.Frequency = Frequency;
+
+      if (Frequency === "Daily") {
+        updateData.TimelineTime = TimelineTime || null;
+        updateData.TimelineDay = null;
+        updateData.TimelineDate = null;
+      } else if (Frequency === "Weekly") {
+        if (!TimelineDay) {
+          return res.status(400).json({ message: "TimelineDay is required for Weekly frequency" });
+        }
+        updateData.TimelineDay = TimelineDay;
+        updateData.TimelineTime = TimelineTime || null;
+        updateData.TimelineDate = null;
+      } else if (Frequency === "Monthly") {
+        if (!TimelineDate) {
+          return res.status(400).json({ message: "TimelineDate is required for Monthly frequency" });
+        }
+        updateData.TimelineDate = TimelineDate;
+        updateData.TimelineTime = TimelineTime || null;
+        updateData.TimelineDay = null;
+      }
+    }
+
     console.log("Update ID:", id);
-    console.log("Update body:", req.body);
+    console.log("Update data:", updateData);
 
     const updatedFeed = await FeedData.findOneAndUpdate(
       { _id: id },
-      { $set: req.body },
+      { $set: updateData },
       { new: true, runValidators: true }
     );
 

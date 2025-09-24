@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth.js";
 import OverdueSummary from "../components/OverdueSummary.jsx";
+import { Doughnut } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
+ChartJS.register(ArcElement, Tooltip, Legend);
 import {
   Users,
   Activity,
@@ -97,6 +105,42 @@ function Home() {
     return new Date(p.dueDate) < new Date() && p.status?.toLowerCase() !== "completed";
   });
 
+
+  const data = {
+    labels: ["On Time Delivery", "Delayed"],
+    datasets: [
+      {
+        data: [65, 20], // example values, you can replace with API data
+        backgroundColor: ["#36A2EB", "#FF6384"],
+        hoverBackgroundColor: ["#36A2EBcc", "#FF6384cc"],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    cutout: "70%", // makes it donut
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          color: "#333",
+          font: { size: 14 },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            let value = context.raw;
+            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+            let percentage = ((value / total) * 100).toFixed(1) + "%";
+            return `${context.label}: ${value} (${percentage})`;
+          },
+        },
+      },
+    },
+  };
   // if (userLoading || loading) return <div className="p-4">Loading...</div>;
 
   return (
@@ -196,26 +240,26 @@ function Home() {
             </div>
             <OverdueSummary tasks={tasks} projects={projects} />
 
-             <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
-      <h2 className="text-lg font-semibold mb-4">Escalations</h2>
-      <div className="grid gap-3">
-        {[
-          { label: "High Priority", count: 2, color: "red" },
-          { label: "Medium Priority", count: 5, color: "yellow" },
-          { label: "Low Priority", count: 3, color: "green" },
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
-          >
-            <span className="text-gray-700 font-medium">{item.label}</span>
-            <span className={`font-bold text-${item.color}-600`}>
-              {item.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+            <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
+              <h2 className="text-lg font-semibold mb-4">Escalations</h2>
+              <div className="grid gap-3">
+                {[
+                  { label: "High Priority", count: 2, color: "red" },
+                  { label: "Medium Priority", count: 5, color: "yellow" },
+                  { label: "Low Priority", count: 3, color: "green" },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
+                  >
+                    <span className="text-gray-700 font-medium">{item.label}</span>
+                    <span className={`font-bold text-${item.color}-600`}>
+                      {item.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
           </div>
 
@@ -233,11 +277,152 @@ function Home() {
           </div>
         </main>
       )
-
       }
 
+      {user?.roleName === "Sales Head" && (
+        <main className="flex-1 bg-white overflow-auto p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+              <Users className="w-10 h-10 text-blue-600 mr-4" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">2</h3>
+                <p className="text-gray-600">Total Managers</p>
+              </div>
+            </div>
+            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+              <User className="w-10 h-10 text-blue-600 mr-4" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">3</h3>
+                <p className="text-gray-600">Total BDE</p>
+              </div>
+            </div>
+            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+              <Activity className="w-10 h-10 text-green-600 mr-4" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">3</h3>
+                <p className="text-gray-600">Active Projects</p>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
-{/* Manager view */}
+            {/* Today's Delivery Overview */}
+            <div className="bg-white p-4 rounded-md shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Today's Delivery Overview</h2>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex justify-between bg-green-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Total</span>
+                  <span className="font-bold text-green-600">12</span>
+                </div>
+                <div className="flex justify-between bg-yellow-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Completed</span>
+                  <span className="font-bold text-yellow-600">5</span>
+                </div>
+                <div className="flex justify-between bg-blue-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Pending</span>
+                  <span className="font-bold text-blue-600">3</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Overview */}
+
+            {/* <OverdueSummary projects={projects} /> */}
+            <div className="bg-white p-4 rounded-md shadow-sm">
+              <h2 className="text-lg font-bold mb-4">Project Progress</h2>
+              <div className="flex items-center justify-center">
+                <div className="w-70 h-70"> {/* control chart size */}
+                  <Doughnut data={data} options={options} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+      )}
+
+      {user?.roleName === "Sales Manager" && (
+        <main className="flex-1 bg-white overflow-auto p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+            {/* Today's Delivery Overview */}
+            <div className="bg-white p-4 rounded-md shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Today's Delivery Overview</h2>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex justify-between bg-green-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Total</span>
+                  <span className="font-bold text-green-600">12</span>
+                </div>
+                <div className="flex justify-between bg-yellow-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Completed</span>
+                  <span className="font-bold text-yellow-600">5</span>
+                </div>
+                <div className="flex justify-between bg-blue-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Pending</span>
+                  <span className="font-bold text-blue-600">3</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Overview */}
+
+            {/* <OverdueSummary projects={projects} /> */}
+            <div className="bg-white p-4 rounded-md shadow-sm">
+              <h2 className="text-lg font-bold mb-4">Project Progress</h2>
+              <div className="flex items-center justify-center">
+                <div className="w-70 h-70"> {/* control chart size */}
+                  <Doughnut data={data} options={options} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+      )}
+
+      {user?.roleName === "Business Development Executive" && (
+        <main className="flex-1 bg-white overflow-auto p-6">
+       
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+            {/* Today's Delivery Overview */}
+            <div className="bg-white p-4 rounded-md shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Today's Delivery Overview</h2>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex justify-between bg-green-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Total</span>
+                  <span className="font-bold text-green-600">12</span>
+                </div>
+                <div className="flex justify-between bg-yellow-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Completed</span>
+                  <span className="font-bold text-yellow-600">5</span>
+                </div>
+                <div className="flex justify-between bg-blue-100 p-3 rounded-md">
+                  <span className="text-gray-700 font-medium">Pending</span>
+                  <span className="font-bold text-blue-600">3</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Overview */}
+
+            {/* <OverdueSummary projects={projects} /> */}
+            <div className="bg-white p-4 rounded-md shadow-sm">
+              <h2 className="text-lg font-bold mb-4">Project Progress</h2>
+              <div className="flex items-center justify-center">
+                <div className="w-70 h-70"> {/* control chart size */}
+                  <Doughnut data={data} options={options} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      )}
+
+      {/* Manager view */}
 
       {user?.roleName === "Manager" && (
         <>
@@ -267,7 +452,7 @@ function Home() {
             //       </div>
             //     </div>
             //   </div>
-                
+
             //      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
             //     {/* QA Overview */}
@@ -305,7 +490,7 @@ function Home() {
             //     <div>
             //       <StatCardList
             //         title="Task Overview"
-                  
+
             //         items={[
             //           // { label: "Team Members", count: 8 },
             //           { label: "Active Tasks", count: 22 },
@@ -319,132 +504,132 @@ function Home() {
             //   </div>
             // </main>
             <main className="flex-1 bg-gray-50 overflow-auto p-6">
-  {/* Top Stats */}
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-      <Users className="w-10 h-10 text-blue-600 mr-4" />
-      <div>
-        <h3 className="text-2xl font-bold text-gray-800">10</h3>
-        <p className="text-gray-500">Total Projects</p>
-      </div>
-    </div>
-    <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-      <User className="w-10 h-10 text-indigo-600 mr-4" />
-      <div>
-        <h3 className="text-2xl font-bold text-gray-800">22</h3>
-        <p className="text-gray-500">Total Tasks</p>
-      </div>
-    </div>
-    <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-      <Activity className="w-10 h-10 text-green-600 mr-4" />
-      <div>
-        <h3 className="text-2xl font-bold text-gray-800">6</h3>
-        <p className="text-gray-500">Active Projects</p>
-      </div>
-    </div>
-  </div>
+              {/* Top Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+                  <Users className="w-10 h-10 text-blue-600 mr-4" />
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-800">10</h3>
+                    <p className="text-gray-500">Total Projects</p>
+                  </div>
+                </div>
+                <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+                  <User className="w-10 h-10 text-indigo-600 mr-4" />
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-800">22</h3>
+                    <p className="text-gray-500">Total Tasks</p>
+                  </div>
+                </div>
+                <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+                  <Activity className="w-10 h-10 text-green-600 mr-4" />
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-800">6</h3>
+                    <p className="text-gray-500">Active Projects</p>
+                  </div>
+                </div>
+              </div>
 
-  {/* QA + Delivery + Escalations */}
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    {/* QA Overview */}
-    <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
-      <h2 className="text-lg font-semibold mb-4">QA Overview</h2>
-      <div className="grid gap-3">
-        {[
-          { label: "Assigned to QA", count: 8, color: "green" },
-          { label: "QA Running", count: 5, color: "yellow" },
-          { label: "QA Passed", count: 3, color: "green" },
-          // { label: "QA Open", count: 5, color: "yellow" },
-          { label: "QA Failed", count: 2, color: "red" },
-          { label: "QA Rejected", count: 0, color: "gray" },
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
-          >
-            <span className="text-gray-700 font-medium">{item.label}</span>
-            <span className={`font-bold text-${item.color}-600`}>
-              {item.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-       {/* Delivery Status Overview */}
-    <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
-      <h2 className="text-lg font-semibold mb-4">Today's Delivery Status</h2>
-      <div className="grid gap-3">
-        {[
-          { label: "Total", count: 3, color: "green" },
-          { label: "Done", count: 2, color: "red" },
-          { label: "Pending", count: 1, color: "yellow" },
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
-          >
-            <span className="text-gray-700 font-medium">{item.label}</span>
-            <span className={`font-bold text-${item.color}-600`}>
-              {item.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+              {/* QA + Delivery + Escalations */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                {/* QA Overview */}
+                <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
+                  <h2 className="text-lg font-semibold mb-4">QA Overview</h2>
+                  <div className="grid gap-3">
+                    {[
+                      { label: "Assigned to QA", count: 8, color: "green" },
+                      { label: "QA Running", count: 5, color: "yellow" },
+                      { label: "QA Passed", count: 3, color: "green" },
+                      // { label: "QA Open", count: 5, color: "yellow" },
+                      { label: "QA Failed", count: 2, color: "red" },
+                      { label: "QA Rejected", count: 0, color: "gray" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
+                      >
+                        <span className="text-gray-700 font-medium">{item.label}</span>
+                        <span className={`font-bold text-${item.color}-600`}>
+                          {item.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Delivery Status Overview */}
+                <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
+                  <h2 className="text-lg font-semibold mb-4">Today's Delivery Status</h2>
+                  <div className="grid gap-3">
+                    {[
+                      { label: "Total", count: 3, color: "green" },
+                      { label: "Done", count: 2, color: "red" },
+                      { label: "Pending", count: 1, color: "yellow" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
+                      >
+                        <span className="text-gray-700 font-medium">{item.label}</span>
+                        <span className={`font-bold text-${item.color}-600`}>
+                          {item.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-    {/* Task Overview */}
-    <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
-      <h2 className="text-lg font-semibold mb-4">Task Overview</h2>
-      <div className="grid gap-3">
-        <div className="flex justify-between p-3 rounded-md bg-blue-50">
-          <span className="text-gray-700 font-medium">Active Tasks</span>
-          <span className="font-bold text-blue-600">20</span>
-        </div>
-        <div className="flex justify-between p-3 rounded-md bg-green-50">
-          <span className="text-gray-700 font-medium">Completed Tasks</span>
-          <span className="font-bold text-green-600">15</span>
-        </div>
-        <div className="flex justify-between p-3 rounded-md bg-yellow-50">
-          <span className="text-gray-700 font-medium">Pending Tasks</span>
-          <span className="font-bold text-yellow-600">5</span>
-        </div>
-      </div>
-    </div>
+                {/* Task Overview */}
+                <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
+                  <h2 className="text-lg font-semibold mb-4">Task Overview</h2>
+                  <div className="grid gap-3">
+                    <div className="flex justify-between p-3 rounded-md bg-blue-50">
+                      <span className="text-gray-700 font-medium">Active Tasks</span>
+                      <span className="font-bold text-blue-600">20</span>
+                    </div>
+                    <div className="flex justify-between p-3 rounded-md bg-green-50">
+                      <span className="text-gray-700 font-medium">Completed Tasks</span>
+                      <span className="font-bold text-green-600">15</span>
+                    </div>
+                    <div className="flex justify-between p-3 rounded-md bg-yellow-50">
+                      <span className="text-gray-700 font-medium">Pending Tasks</span>
+                      <span className="font-bold text-yellow-600">5</span>
+                    </div>
+                  </div>
+                </div>
 
- 
 
-    {/* Escalations */}
-    <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
-      <h2 className="text-lg font-semibold mb-4">Escalations</h2>
-      <div className="grid gap-3">
-        {[
-          { label: "High Priority", count: 2, color: "red" },
-          { label: "Medium Priority", count: 5, color: "yellow" },
-          { label: "Low Priority", count: 3, color: "green" },
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
-          >
-            <span className="text-gray-700 font-medium">{item.label}</span>
-            <span className={`font-bold text-${item.color}-600`}>
-              {item.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
 
-  {/* Overdue / Summaries Section */}
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <OverdueSummary tasks={tasks} projects={projects} />
-    {/* Additional Summary Cards if needed */}
-  </div>
+                {/* Escalations */}
+                <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
+                  <h2 className="text-lg font-semibold mb-4">Escalations</h2>
+                  <div className="grid gap-3">
+                    {[
+                      { label: "High Priority", count: 2, color: "red" },
+                      { label: "Medium Priority", count: 5, color: "yellow" },
+                      { label: "Low Priority", count: 3, color: "green" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
+                      >
+                        <span className="text-gray-700 font-medium">{item.label}</span>
+                        <span className={`font-bold text-${item.color}-600`}>
+                          {item.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-</main>
+              {/* Overdue / Summaries Section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <OverdueSummary tasks={tasks} projects={projects} />
+                {/* Additional Summary Cards if needed */}
+              </div>
 
-    )}
+            </main>
+
+          )}
 
           {user?.department === "R&D" && (
             <main className="flex-1 bg-white overflow-auto p-6">
@@ -472,7 +657,7 @@ function Home() {
                 </div>
 
               </div>
-       
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
                 {/* Today's Delivery Overview */}
@@ -512,59 +697,59 @@ function Home() {
 
                 <OverdueSummary tasks={tasks} projects={projects} />
               </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    {/* QA Overview */}
-    <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
-      <h2 className="text-lg font-semibold mb-4">QA Overview</h2>
-      <div className="grid gap-3">
-        {[
-          { label: "Assigned to QA", count: 8, color: "green" },
-          { label: "QA Running", count: 5, color: "yellow" },
-          { label: "QA Passed", count: 3, color: "green" },
-          // { label: "QA Open", count: 5, color: "yellow" },
-          { label: "QA Failed", count: 2, color: "red" },
-          { label: "QA Rejected", count: 0, color: "gray" },
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
-          >
-            <span className="text-gray-700 font-medium">{item.label}</span>
-            <span className={`font-bold text-${item.color}-600`}>
-              {item.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                {/* QA Overview */}
+                <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
+                  <h2 className="text-lg font-semibold mb-4">QA Overview</h2>
+                  <div className="grid gap-3">
+                    {[
+                      { label: "Assigned to QA", count: 8, color: "green" },
+                      { label: "QA Running", count: 5, color: "yellow" },
+                      { label: "QA Passed", count: 3, color: "green" },
+                      // { label: "QA Open", count: 5, color: "yellow" },
+                      { label: "QA Failed", count: 2, color: "red" },
+                      { label: "QA Rejected", count: 0, color: "gray" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
+                      >
+                        <span className="text-gray-700 font-medium">{item.label}</span>
+                        <span className={`font-bold text-${item.color}-600`}>
+                          {item.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
 
-   
 
- 
 
-    {/* Escalations */}
-    <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
-      <h2 className="text-lg font-semibold mb-4">Escalations</h2>
-      <div className="grid gap-3">
-        {[
-          { label: "High Priority", count: 2, color: "red" },
-          { label: "Medium Priority", count: 5, color: "yellow" },
-          { label: "Low Priority", count: 3, color: "green" },
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
-          >
-            <span className="text-gray-700 font-medium">{item.label}</span>
-            <span className={`font-bold text-${item.color}-600`}>
-              {item.count}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
+
+
+                {/* Escalations */}
+                <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition">
+                  <h2 className="text-lg font-semibold mb-4">Escalations</h2>
+                  <div className="grid gap-3">
+                    {[
+                      { label: "High Priority", count: 2, color: "red" },
+                      { label: "Medium Priority", count: 5, color: "yellow" },
+                      { label: "Low Priority", count: 3, color: "green" },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex justify-between p-3 rounded-md bg-${item.color}-100`}
+                      >
+                        <span className="text-gray-700 font-medium">{item.label}</span>
+                        <span className={`font-bold text-${item.color}-600`}>
+                          {item.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </main>
           )}
 
@@ -709,12 +894,17 @@ function Home() {
 
             </main>
           )}
+
+        
+
+
+
         </>
       )}
 
       {user?.roleName === "Team Lead" && (
         <main className="flex-1 bg-white overflow-auto p-6">
-     
+
           {/* <div className="bg-white p-4 rounded-md shadow-sm mb-8">
             <h2 className="text-lg font-semibold mb-4">Today's Delivery Overview</h2>
             <div className="grid grid-cols-1 gap-3">
@@ -732,49 +922,49 @@ function Home() {
               </div>
             </div>
           </div> */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-                  <User className="w-10 h-10 text-blue-600 mr-4" />
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-800">2</h3>
-                    <p className="text-gray-600">Developers</p>
-                  </div>
-                </div>
-                <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-                  <Users className="w-10 h-10 text-blue-600 mr-4" />
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-800">10</h3>
-                    <p className="text-gray-600">Total Tasks</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-                  <Activity className="w-10 h-10 text-green-600 mr-4" />
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-800">5</h3>
-                    <p className="text-gray-600">Active Projects</p>
-                  </div>
-                </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+              <User className="w-10 h-10 text-blue-600 mr-4" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">2</h3>
+                <p className="text-gray-600">Developers</p>
               </div>
+            </div>
+            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+              <Users className="w-10 h-10 text-blue-600 mr-4" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">10</h3>
+                <p className="text-gray-600">Total Tasks</p>
+              </div>
+            </div>
 
-              <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition mb-4">
-      <h2 className="text-lg font-semibold mb-4">Task Overview</h2>
-      <div className="grid gap-3">
-        <div className="flex justify-between p-3 rounded-md bg-blue-50">
-          <span className="text-gray-700 font-medium">Active Tasks</span>
-          <span className="font-bold text-blue-600">20</span>
-        </div>
-        <div className="flex justify-between p-3 rounded-md bg-green-50">
-          <span className="text-gray-700 font-medium">Completed Tasks</span>
-          <span className="font-bold text-green-600">15</span>
-        </div>
-        <div className="flex justify-between p-3 rounded-md bg-yellow-50">
-          <span className="text-gray-700 font-medium">Pending Tasks</span>
-          <span className="font-bold text-yellow-600">5</span>
-        </div>
-      </div>
-    </div>
+            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+              <Activity className="w-10 h-10 text-green-600 mr-4" />
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">5</h3>
+                <p className="text-gray-600">Active Projects</p>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="bg-white p-5 rounded-xl shadow hover:shadow-md transition mb-4">
+            <h2 className="text-lg font-semibold mb-4">Task Overview</h2>
+            <div className="grid gap-3">
+              <div className="flex justify-between p-3 rounded-md bg-blue-50">
+                <span className="text-gray-700 font-medium">Active Tasks</span>
+                <span className="font-bold text-blue-600">20</span>
+              </div>
+              <div className="flex justify-between p-3 rounded-md bg-green-50">
+                <span className="text-gray-700 font-medium">Completed Tasks</span>
+                <span className="font-bold text-green-600">15</span>
+              </div>
+              <div className="flex justify-between p-3 rounded-md bg-yellow-50">
+                <span className="text-gray-700 font-medium">Pending Tasks</span>
+                <span className="font-bold text-yellow-600">5</span>
+              </div>
+            </div>
+          </div>
           {/* Team Overview + Task Distribution in same row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             {/* Team Metrics */}
@@ -876,6 +1066,10 @@ function Home() {
           </section>
         </>
       )}
+
+
+
+
     </div>
   );
 }

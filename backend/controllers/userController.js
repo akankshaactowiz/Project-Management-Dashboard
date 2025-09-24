@@ -54,6 +54,39 @@ export const getPMAndQAUsers = async (req, res) => {
   }
 };
 
+export const getBDE = async (req, res) => {
+  try {
+    // Find users with role=Manager + department in R&D/Operations
+    const bdeUsers = await User.find()
+      .populate("roleId", "name")
+      .populate("departmentId", "department")
+      .where("roleId")
+      .ne(null)
+      .where("departmentId")
+      .ne(null);
+
+    const filteredBDEUsers = bdeUsers.filter(
+      (u) =>
+        u.roleId?.name === "Business Development Executive" &&
+        ["Sales"].includes(u.departmentId?.department)
+    );
+
+    // Find users with role=Manager + department=QA
+    // const qaUsers = pmUsers.filter(
+    //   (u) => u.roleId?.name === "Manager" && u.departmentId?.department === "QA"
+    // );
+
+    return res.json({
+      bdeUsers: filteredBDEUsers.map((u) => ({ _id: u._id, name: u.name })),
+      // qaUsers: qaUsers.map((u) => ({ _id: u._id, name: u.name })),
+    });
+  } catch (err) {
+    console.error("Error fetching BDE:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 export const getTLAndDevelopers = async (req, res) => {
   try {
     // Populate role + department for filtering

@@ -30,8 +30,13 @@ const projectSchema = new mongoose.Schema({
   CreatedDate: { type: Date, default: Date.now },
   BAUStartDate: { type: Date },
   CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+ 
+  Timeline: { type: String },
+
+  Description: { type: String},
 
 
+  Priority: { type: String, default: "N/A" },
   Status: { type: String, default: "New" },
   Platform: { type: String,  },
   BAU: { type: String , default: "None" },
@@ -52,7 +57,7 @@ const projectSchema = new mongoose.Schema({
   DBStatus: { type: String, default: "Actowizdb" },
   DBType: { type: String, default: "MongoDB" },
 
-  Feeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Feed",  }],
+  Feeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Feed"}],
 
   // New fields for tracking QA cycles, history, etc.
   history: [activityLogSchema],

@@ -3,7 +3,8 @@ import Select from "react-select";
 
 export default function CreateProjectModal({ isOpen, onClose }) {
   // --- Option states ---
-  const [departmentOptions, setDepartmentOptions] = useState([]); // filtered to R&D + Operation
+  const [departmentOptions, setDepartmentOptions] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [pmOptions, setPmOptions] = useState([]); // managers for selected department
   const [bdeOptions, setBdeOptions] = useState([]); // business development execs
 
@@ -14,9 +15,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     SOWLink: [], // array
     InputLinks: [], // array
     Frequency: "",
+    Priority: "",
     Department: "",
     PM: "",
     BDE: "", // added BDE
+    Timeline: "", // new field for target deadline
+    Description: "",
   });
 
   // universal handler (works for regular inputs and for synthetic select calls)
@@ -25,10 +29,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const departmentSelectOptions = departmentOptions.map((d) => ({
-    value: d._id || d.id,
-    label: d.name,
-  }));
+  // const departmentSelectOptions = departmentOptions.map((d) => ({
+  //   value: d._id || d.id,
+  //   label: d.department,  // <-- use 'department' key
+  // }));
+
 
   // helper to normalize user arrays returned by various endpoints
   const normalizeUsersResponse = (data) => {
@@ -44,7 +49,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   useEffect(() => {
     if (!isOpen) return;
 
-    // fetch departments and filter to R&D & Operation
+    // fetch departments and filter to R&D, Operation, BAU
     (async () => {
       try {
         const res = await fetch(
@@ -55,12 +60,9 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
         console.log("Departments API response:", data);
 
-        const depts = Array.isArray(data)
-          ? data
-          : data.departments || [];
-
-        const filtered = depts.filter((d) =>
-          ["R&D", "Operation"].includes(d.name?.trim())
+        // Use `d.department` instead of `d.name`
+        const filtered = data.filter((d) =>
+          ["R&D", "Operation", "BAU"].includes(d.department?.trim())
         );
 
         setDepartmentOptions(filtered);
@@ -69,30 +71,20 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         setDepartmentOptions([]);
       }
     })();
-
-
-    // fetch BDEs (business development executives)
-    (async () => {
-      try {
-        const res = await fetch(
-          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/by-role?roleName=Business Development Executive`,
-          { credentials: "include" }
-        );
-        const data = await res.json();
-        setBdeOptions(normalizeUsersResponse(data));
-      } catch (err) {
-        console.error("Failed to load BDE list:", err);
-        setBdeOptions([]);
-      }
-    })();
   }, [isOpen]);
+
+  // Map for React Select
+  const departmentSelectOptions = departmentOptions.map((d) => ({
+    value: d._id || d.id,
+    label: d.department, // <-- use 'department' here
+  }));
+
 
   // --- Fetch PMs (managers) when Department changes ---
   useEffect(() => {
     const deptId = form.Department;
     if (!deptId) {
       setPmOptions([]);
-      // clear PM selection when department unselected
       setForm((prev) => ({ ...prev, PM: "" }));
       return;
     }
@@ -100,29 +92,52 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     let cancelled = false;
     (async () => {
       try {
-        // assuming backend supports this endpoint (based on your reference code)
         const res = await fetch(
-          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/by-role-department?roleName=Manager&departmentId=${form.Department}`,
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/by-role?roleName=Manager&departmentId=${deptId}`,
           { credentials: "include" }
         );
         const data = await res.json();
         if (!cancelled) {
-          setPmOptions(normalizeUsersResponse(data));
-          // reset PM selection when department changes
+          setPmOptions(data || []);
           setForm((prev) => ({ ...prev, PM: "" }));
         }
       } catch (err) {
         if (!cancelled) {
-          console.error("Failed to load managers for department:", err);
+          console.error("Failed to load PMs:", err);
           setPmOptions([]);
         }
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [form.Department]);
+
+  // Fetch BDE 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    (async () => {
+      try {
+        const res = await fetch(
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/bde`,
+          { credentials: "include" }
+        );
+        const data = await res.json();
+
+        const options = (data.bdeUsers || []).map((u) => ({
+          value: u._id,
+          label: u.name,
+        }));
+
+        setBdeOptions(options);
+      } catch (err) {
+        console.error("Failed to load BDE list:", err);
+        setBdeOptions([]);
+      }
+    })();
+  }, [isOpen]);
+
+
 
   // --- Save handler (include DepartmentId and BDEId) ---
   const handleSave = async () => {
@@ -131,11 +146,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
         ProjectCode: form.ProjectCode,
         ProjectName: form.ProjectName,
         Frequency: form.Frequency,
+        Priority: form.Priority,
         PMId: form.PM || null,
         BDEId: form.BDE || null,
         DepartmentId: form.Department || null,
         SOWFile: form.SOWLink, // schema expects SOWFile
         SampleFiles: form.InputLinks, // schema expects SampleFiles
+        Timeline: form.Timeline,
+        Description: form.Description,
       };
 
       const res = await fetch(
@@ -304,27 +322,45 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 <option value="OneTime">One-time</option>
                 <option value="Adhoc">Adhoc</option>
               </select>
+
+              {form.Frequency === "OneTime" && (
+                <div>
+                  <label className="block font-medium mb-1">Target Deadline</label>
+                  <input
+                    type="date"
+                    value={form.Timeline || ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, Timeline: e.target.value }))
+                    }
+                    className="w-full bg-gray-100 rounded p-2"
+                  />
+                </div>
+              )}
+
             </div>
 
             {/* Department */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Department
-              </label>
-              <Select
-                name="Department"
-                value={departmentSelectOptions.find(opt => opt.value === form.Department) || null}
-                onChange={(selected) =>
-                  handleChange({ target: { name: "Department", value: selected?.value || "" } })
-                }
-                options={departmentSelectOptions}
-                placeholder="Select Department"
-                isClearable
-                isSearchable
-                className="w-full"
-              />
+            <Select
+              name="Department"
+              value={
+                form.Department
+                  ? {
+                    value: form.Department,
+                    label: departmentSelectOptions.find((opt) => opt.value === form.Department)?.label,
+                  }
+                  : null
+              }
+              onChange={(selected) =>
+                handleChange({ target: { name: "Department", value: selected?.value || "" } })
+              }
+              options={departmentSelectOptions}
+              placeholder="Select Department"
+              isClearable
+              isSearchable
+              className="w-full"
+            />
 
-            </div>
+
 
             {/* Project Manager */}
             <div>
@@ -335,55 +371,51 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 name="PM"
                 value={
                   form.PM
-                    ? {
-                      value: form.PM,
-                      label: pmOptions.find((u) => u._id === form.PM)?.name,
-                    }
+                    ? { value: form.PM, label: pmOptions.find(u => u._id === form.PM)?.name }
                     : null
                 }
                 onChange={(selected) =>
                   handleChange({ target: { name: "PM", value: selected?.value } })
                 }
-                options={pmOptions.map((u) => ({
-                  value: u._id,
-                  label: u.name,
-                }))}
+                options={pmOptions.map(u => ({ value: u._id, label: u.name }))}
                 placeholder={departmentOptions.length ? "Select PM" : "Select Department first"}
                 isClearable
                 isSearchable
                 className="w-full"
               />
+
             </div>
 
             {/* Business Development Executive */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Business Development Executive
-              </label>
-              <Select
-                name="BDE"
-                value={
-                  form.BDE
-                    ? {
-                      value: form.BDE,
-                      label: bdeOptions.find((u) => u._id === form.BDE)?.name,
-                    }
-                    : null
-                }
-                onChange={(selected) =>
-                  handleChange({ target: { name: "BDE", value: selected?.value } })
-                }
-                options={bdeOptions.map((u) => ({
-                  value: u._id,
-                  label: u.name,
-                }))}
-                placeholder="Select BDE"
-                isClearable
-                isSearchable
-                className="w-full"
-              />
-            </div>
+            <Select
+              name="BDE"
+              value={bdeOptions.find((opt) => opt.value === form.BDE) || null}
+              onChange={(selected) =>
+                handleChange({ target: { name: "BDE", value: selected?.value || "" } })
+              }
+              options={bdeOptions}
+              placeholder="Select BDE"
+              isClearable
+              isSearchable
+              className="w-full"
+            />
 
+            <div>
+              <label className="block font-medium mb-1">Project Priority</label>
+              <select
+                name="Priority"
+                value={form.Priority}
+                onChange={handleChange}
+                className="w-full bg-gray-100 rounded p-2"
+              >
+                <option value="" disabled>
+                  Select Priority
+                </option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
             <div>
               <label htmlFor="bau-started" className="block mb-1">BAU started</label>
               <input
@@ -394,6 +426,16 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               />
             </div>
 
+            <div>
+              <label className="block font-medium mb-1">Description / Additional Info</label>
+              <textarea
+                value={form.Description}
+                onChange={(e) => setForm((prev) => ({ ...prev, Description: e.target.value }))}
+                placeholder="Enter description..."
+                className="w-full bg-gray-100 rounded p-2"
+                rows={3}
+              />
+            </div>
           </div>
         </div>
 

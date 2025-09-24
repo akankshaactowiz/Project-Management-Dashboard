@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import { v4 as uuidv4 } from 'uuid';
 import Task from "../models/TaskData.js";
 import Notification from "../models/Notification.js";
+import FeedData from "../models/FeedData.js";
 
 export const createProject = async (req, res) => {
   try {
@@ -15,6 +16,9 @@ export const createProject = async (req, res) => {
       BDEId,
       DepartmentId: Department,
       Frequency,
+      Priority,
+      Timeline,      // new
+      Description,   // new
     } = req.body;
 
     // you can get userId from auth middleware
@@ -29,6 +33,9 @@ export const createProject = async (req, res) => {
       BDEId,
       Department,
       Frequency,
+      Priority,
+      Timeline: Timeline || "",   // store as array
+      Description: Description || "", // default empty string
       CreatedBy: createdBy,
     });
 
@@ -43,124 +50,361 @@ export const createProject = async (req, res) => {
 export const getProjects = async (req, res) => {
   try {
     const {
-      page = 1,
+      page = 1,  
       pageSize = 10,
       status,
       search,
-      // department,
       date_range,
-      // qaStatus,
       qaid,
     } = req.query;
 
+    // const userId = req.user._id;
+    const userId = req.user._id.toString();
+    const role = req.user.roleId?.name; // "Superadmin", "Team Lead", "Developer", "QA", etc.
+    const department = req.user.departmentId?.department;
+
     const filter = {};
-    // if (qaStatus) filter.QAStatus = qaStatus;
+
     // Status filter
-    if (status && status !== "All") filter.Status = { $regex: `^${status}$`, $options: "i" };
+    if (status && status !== "All") {
+      filter.Status = { $regex: `^${status}$`, $options: "i" };
+    }
 
     // Search filter
-    if (search) filter.ProjectName = { $regex: search, $options: "i" };
+    if (search) {
+      filter.ProjectName = { $regex: search, $options: "i" };
+    }
 
     // QA filter
     if (qaid) filter.QAId = qaid;
 
     // Date range filter
+    // if (date_range) {
+    //   const now = new Date();
+    //   let startDate, endDate;
+
+    //   switch (date_range.toLowerCase()) {
+    //     case "today":
+    //       startDate = new Date(now.setHours(0, 0, 0, 0));
+    //       endDate = new Date(now.setHours(23, 59, 59, 999));
+    //       break;
+    //     case "yesterday":
+    //       startDate = new Date(now.setDate(now.getDate() - 1));
+    //       startDate.setHours(0, 0, 0, 0);
+    //       endDate = new Date(now.setDate(now.getDate() - 1));
+    //       endDate.setHours(23, 59, 59, 999);
+    //       break;
+    //     case "this_week":
+    //       startDate = new Date(now);
+    //       startDate.setDate(startDate.getDate() - startDate.getDay());
+    //       startDate.setHours(0, 0, 0, 0);
+    //       endDate = new Date();
+    //       endDate.setHours(23, 59, 59, 999);
+    //       break;
+    //     case "last_week":
+    //       startDate = new Date(now);
+    //       startDate.setDate(startDate.getDate() - startDate.getDay() - 7);
+    //       startDate.setHours(0, 0, 0, 0);
+    //       endDate = new Date(now);
+    //       endDate.setDate(endDate.getDate() - endDate.getDay());
+    //       endDate.setHours(0, 0, 0, 0);
+    //       break;
+    //     case "this_month":
+    //       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    //       endDate = new Date();
+    //       endDate.setHours(23, 59, 59, 999);
+    //       break;
+    //     case "last_month":
+    //       startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    //       endDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    //       endDate.setHours(0, 0, 0, 0);
+    //       break;
+    //     default:
+    //       startDate = null;
+    //       endDate = null;
+    //   }
+
+    //   if (startDate && endDate) {
+    //     filter.CreatedDate = { $gte: startDate, $lt: endDate };
+    //   }
+    // }
     if (date_range) {
-      const now = new Date();
-      let startDate, endDate;
+  const now = new Date();
+  const today = new Date(now.setHours(0, 0, 0, 0));
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-      switch (date_range.toLowerCase()) {
-        case "today":
-          startDate = new Date(now);
-          startDate.setHours(0, 0, 0, 0);
-          endDate = new Date(now);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case "yesterday":
-          startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - 1);
-          startDate.setHours(0, 0, 0, 0);
-          endDate = new Date(now);
-          endDate.setDate(endDate.getDate() - 1);
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case "this_week":
-          startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - startDate.getDay());
-          startDate.setHours(0, 0, 0, 0);
-          endDate = new Date();
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case "last_week":
-          startDate = new Date(now);
-          startDate.setDate(startDate.getDate() - startDate.getDay() - 7);
-          startDate.setHours(0, 0, 0, 0);
-          endDate = new Date(now);
-          endDate.setDate(endDate.getDate() - endDate.getDay());
-          endDate.setHours(0, 0, 0, 0);
-          break;
-        case "this_month":
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          endDate = new Date();
-          endDate.setHours(23, 59, 59, 999);
-          break;
-        case "last_month":
-          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          endDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          endDate.setHours(0, 0, 0, 0);
-          break;
-        default:
-          startDate = null;
-          endDate = null;
-          break;
-      }
+  const targetDay = now.toLocaleString("en-US", { weekday: "long" }); // e.g., "Monday"
+  const targetDate = now.getDate(); // 1-31
 
-      if (startDate && endDate) {
-        filter.CreatedDate = { $gte: startDate, $lt: endDate };
-      }
+  const feeds = await FeedData.find({ /* your other filters */ });
+
+  let filteredFeeds = feeds.filter(feed => {
+    const freq = feed.Frequency;
+
+    if (date_range.toLowerCase() === "today") {
+      if (freq === "Daily") return true;
+      if (freq === "Weekly") return feed.TimelineDay === targetDay;
+      if (freq === "Monthly") return feed.TimelineDate === targetDate;
     }
 
-    // Role-based filtering
-    // const userId = req.user._id;
-    // const role = req.user.roleId?.name; // e.g., "superadmin", "PM", "TL", etc.
+    if (date_range.toLowerCase() === "tomorrow") {
+      const tomorrowDay = tomorrow.toLocaleString("en-US", { weekday: "long" });
+      const tomorrowDate = tomorrow.getDate();
 
-    // if (role !== "Superadmin") {
-    //   filter.$or = [
-    //     { PMId: userId },
-    //     { TLId: userId },
-    //     { DeveloperIds: userId },
-    //     { QAId: userId },
-    //     { BAUPersonId: userId },
-    //   ];
-    // }
+      if (freq === "Daily") return true;
+      if (freq === "Weekly") return feed.TimelineDay === tomorrowDay;
+      if (freq === "Monthly") return feed.TimelineDate === tomorrowDate;
+    }
+
+    // Optional: fallback to createdDate filter if frequency doesn't match
+    return false;
+  });
+
+  // now `filteredFeeds` contains only feeds due for "today" or "tomorrow" based on frequency
+}
+
+
+    // Role-based project filtering (project-level)
+    if (role !== "Superadmin") {
+      if (department === "Sales") {
+        if (role === "Sales Manager") filter.CreatedBy = userId;
+        if (role === "Business Development Executive") filter.BDEId = userId;
+      } else {
+        if (role === "Manager") filter.PMId = userId;
+        // other roles like TL, Developer, QA will be filtered at feed-level
+      }
+    }
 
     // Pagination
     const parsedPage = parseInt(page, 10) || 1;
     const parsedPageSize = parseInt(pageSize, 10) || 20;
 
-    // Query database
+    // Fetch projects
     const total = await Project.countDocuments(filter);
-    const projects = await Project.find(filter)
-      .populate("PMId TLId DeveloperIds QAId BAUPersonId")
-      .populate("CreatedBy", "name")
 
+    const projects = await Project.find(filter)
+      .populate("PMId QAId BAUPersonId BDEId")
+      .populate("CreatedBy", "name")
+      .populate({
+        path: "Feeds",
+        populate: [
+          { path: "TLId", select: "name roleId" },
+          { path: "DeveloperIds", select: "name roleId" },
+          { path: "QAId", select: "name roleId" },
+          { path: "BAUPersonId", select: "name roleId" },
+          { path: "createdBy", select: "name email" },
+        ],
+      })
       .sort({ CreatedDate: -1 })
       .skip((parsedPage - 1) * parsedPageSize)
-      .limit(parsedPageSize);
+      .limit(parsedPageSize)
+      .lean();
 
-    // Send response
+    // Feed-level filtering for TL, Developer, QA
+    const filteredProjects = projects.map(project => {
+      if (["Team Lead", "Developer", "QA"].includes(role)) {
+        const feeds = project.Feeds.filter(feed => {
+          if (role === "Team Lead") return feed.TLId?._id?.toString() === userId;
+          if (role === "Developer")
+            return feed.DeveloperIds.some(dev => dev._id?.toString() === userId);
+          if (role === "QA") return feed.QAId?._id?.toString() === userId;
+          return true;
+        });
+        return { ...project, Feeds: feeds };
+      }
+      return project;
+    });
+
     res.status(200).json({
-      data: projects,
+      data: filteredProjects,
       total,
       page: parsedPage,
       pageSize: parsedPageSize,
     });
-    // console.log("Role:", role, "Filter:", filter); Debugging
   } catch (error) {
     console.error("Error in getProjects:", error);
     res.status(500).json({ message: error.message });
   }
 };
+
+
+// export const getProjects = async (req, res) => {
+//   try {
+//     const {
+//       page = 1,
+//       pageSize = 10,
+//       status,
+//       search,
+//       // department,
+//       date_range,
+//       // qaStatus,
+//       qaid,
+//     } = req.query;
+
+
+
+//     const filter = {};
+//     // if (qaStatus) filter.QAStatus = qaStatus;
+//     // Status filter
+//     if (status && status !== "All") filter.Status = { $regex: `^${status}$`, $options: "i" };
+
+//     // Search filter
+//     if (search) filter.ProjectName = { $regex: search, $options: "i" };
+
+//     // QA filter
+//     if (qaid) filter.QAId = qaid;
+
+//     // Date range filter
+//     if (date_range) {
+//       const now = new Date();
+//       let startDate, endDate;
+
+//       switch (date_range.toLowerCase()) {
+//         case "today":
+//           startDate = new Date(now);
+//           startDate.setHours(0, 0, 0, 0);
+//           endDate = new Date(now);
+//           endDate.setHours(23, 59, 59, 999);
+//           break;
+//         case "yesterday":
+//           startDate = new Date(now);
+//           startDate.setDate(startDate.getDate() - 1);
+//           startDate.setHours(0, 0, 0, 0);
+//           endDate = new Date(now);
+//           endDate.setDate(endDate.getDate() - 1);
+//           endDate.setHours(23, 59, 59, 999);
+//           break;
+//         case "this_week":
+//           startDate = new Date(now);
+//           startDate.setDate(startDate.getDate() - startDate.getDay());
+//           startDate.setHours(0, 0, 0, 0);
+//           endDate = new Date();
+//           endDate.setHours(23, 59, 59, 999);
+//           break;
+//         case "last_week":
+//           startDate = new Date(now);
+//           startDate.setDate(startDate.getDate() - startDate.getDay() - 7);
+//           startDate.setHours(0, 0, 0, 0);
+//           endDate = new Date(now);
+//           endDate.setDate(endDate.getDate() - endDate.getDay());
+//           endDate.setHours(0, 0, 0, 0);
+//           break;
+//         case "this_month":
+//           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+//           endDate = new Date();
+//           endDate.setHours(23, 59, 59, 999);
+//           break;
+//         case "last_month":
+//           startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+//           endDate = new Date(now.getFullYear(), now.getMonth(), 1);
+//           endDate.setHours(0, 0, 0, 0);
+//           break;
+//         default:
+//           startDate = null;
+//           endDate = null;
+//           break;
+//       }
+
+//       if (startDate && endDate) {
+//         filter.CreatedDate = { $gte: startDate, $lt: endDate };
+//       }
+//     }
+
+
+
+//     // Role-based filtering
+//     const userId = req.user._id;
+//     const role = req.user.roleId?.name; // e.g., "Superadmin", "Sales Head", "Sales Manager", "BDE"
+//     const department = req.user.departmentId?.department;
+
+//     if (role === "Superadmin") {
+//       // No filter, get all projects
+//     } else if (department === "Sales") {
+//       if (role === "Sales Head") {
+//         // All Sales projects
+//         // filter.department = "Sales";
+//       } else if (role === "Sales Manager") {
+//         // Projects created by him/her
+//         filter.CreatedBy = userId;
+//       } else if (role === "Business Development Executive") {
+//         // Projects where BDE is involved
+//         filter.BDEId = userId; // assuming project has BDEIds array
+//       }
+//     } else {
+//       // Other departments
+//       if (role === "Manager") {
+//         // Projects where manager is involved
+//         filter.PMId = userId; // assuming project has ManagerIds array
+//       }
+//       if (role === "Team Lead") {
+//         // Projects where TL is involved
+//         filter.TLId = userId; // assuming project has TLIds array
+//       }
+//       else {
+//         // Other roles: get projects assigned to them
+//         filter.$or = [
+//           { PMId: userId },
+//           { TLId: userId },
+//           { DeveloperIds: userId },
+//           { QAId: userId },
+//           { BAUPersonId: userId },
+//           { BDEId: userId },
+//         ];
+//       }
+//     }
+
+//     // const userId = req.user._id;
+//     // const role = req.user.roleId?.name; // e.g., "superadmin", "PM", "TL", etc.
+
+//     // if (role !== "Superadmin") {
+//     //   filter.$or = [
+//     //     { PMId: userId },
+//     //     { TLId: userId },
+//     //     { DeveloperIds: userId },
+//     //     { QAId: userId },
+//     //     { BAUPersonId: userId },
+//     //   ];
+//     // }
+
+//     // Pagination
+//     const parsedPage = parseInt(page, 10) || 1;
+//     const parsedPageSize = parseInt(pageSize, 10) || 20;
+
+//     // Query database
+//     const total = await Project.countDocuments(filter);
+//     const projects = await Project.find(filter)
+//       .populate("PMId TLId DeveloperIds QAId BAUPersonId BDEId")
+//       .populate("CreatedBy", "name")
+//       .populate("Feeds")
+//       .populate({
+//         path: "Feeds",
+//         populate: [
+//           { path: "TLId", select: "name email roleId" },
+//           { path: "DeveloperIds", select: "name email roleId" },
+//           { path: "QAId", select: "name email roleId" },
+//           { path: "BAUPersonId", select: "name email roleId" },
+//           { path: "createdBy", select: "name email" },
+//         ],
+//       })
+
+//       .sort({ CreatedDate: -1 })
+//       .skip((parsedPage - 1) * parsedPageSize)
+//       .limit(parsedPageSize);
+
+//     // Send response
+//     res.status(200).json({
+//       data: projects,
+//       total,
+//       page: parsedPage,
+//       pageSize: parsedPageSize,
+//     });
+//     // console.log("Role:", role, "Filter:", filter); Debugging
+//   } catch (error) {
+//     console.error("Error in getProjects:", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 export const getProjectById = async (req, res) => {
   try {

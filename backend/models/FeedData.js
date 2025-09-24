@@ -21,6 +21,12 @@ const feedSchema = new mongoose.Schema(
     ApplicationType: { type: String},
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     createdDate: { type: Date, default: Date.now },
+
+     // --- New fields for frequency ---
+    Frequency: { type: String, enum: ["Daily", "Weekly", "Monthly"], required: true },
+    TimelineTime: { type: String },          // e.g., "14:30"
+    TimelineDay: { type: String },           // for weekly, e.g., "Monday"
+    TimelineDate: { type: Number },          // for monthly, e.g., 15
   },
   { timestamps: true }
 );

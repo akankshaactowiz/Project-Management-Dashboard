@@ -8,7 +8,8 @@ function FeedUpdate() {
   const navigate = useNavigate();
   const [feed, setFeed] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("Feed Details");
+  // const [activeTab, setActiveTab] = useState("Feed Details");
+  const [activeTab, setActiveTab] = useState("Frequency");
 
   // Fetch feed details by id
   useEffect(() => {
@@ -31,9 +32,36 @@ function FeedUpdate() {
     fetchFeed();
   }, [id]);
 
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFeed({ ...feed, [name]: value });
+  // };
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFeed({ ...feed, [name]: value });
+
+    // Update state
+    setFeed((prev) => {
+      const updated = { ...prev, [name]: value };
+
+      // Clear irrelevant timeline fields when switching frequency
+      if (name === "Frequency") {
+        if (value === "Daily") {
+          updated.TimelineTime = "";
+          updated.TimelineDay = null;
+          updated.TimelineDate = null;
+        } else if (value === "Weekly") {
+          updated.TimelineTime = "";
+          updated.TimelineDay = "";
+          updated.TimelineDate = null;
+        } else if (value === "Monthly") {
+          updated.TimelineTime = "";
+          updated.TimelineDay = null;
+          updated.TimelineDate = "";
+        }
+      }
+
+      return updated;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -42,6 +70,7 @@ function FeedUpdate() {
       const res = await fetch(`http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(feed),
       });
       if (res.ok) {
@@ -56,7 +85,7 @@ function FeedUpdate() {
   };
 
   const tabs = [
-    "Feed Details",
+    // "Feed Details",
     "Frequency",
     // "Databases",
     // "Systems",
@@ -97,13 +126,117 @@ function FeedUpdate() {
         ))}
       </div>
       <div className="p-6 mx-auto">
-        {activeTab === "Feed Details" && (
+        {activeTab === "Frequency" && (
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 gap-6 bg-white rounded-xl p-6"
+          >
+            <label className="block font-medium mb-2">Frequency *</label>
+            <div className="flex gap-4 mb-4">
+              {["Daily", "Weekly", "Monthly"].map((freq) => (
+                <label key={freq} className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="Frequency"
+                    value={freq}
+                    checked={feed.Frequency === freq}
+                    onChange={handleChange}
+                  />
+                  {freq}
+                </label>
+              ))}
+            </div>
+
+            {/* Timeline Input */}
+            {feed.Frequency === "Daily" && (
+              <div>
+                <label className="block font-medium mb-1">Delivery Time</label>
+                <input
+                  type="time"
+                  name="TimelineTime" // <-- must match schema
+                  value={feed.TimelineTime || ""}
+                  onChange={handleChange}
+                  className="w-1/6 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+                />
+              </div>
+            )}
+
+
+            {feed.Frequency === "Weekly" && (
+              <div className="grid grid-cols gap-4">
+                <div>
+                  <label className="block font-medium mb-1">Day of Week</label>
+                  <select
+                    name="TimelineDay"
+                    value={feed.TimelineDay || ""}
+                    onChange={handleChange}
+                    className="w-1/4 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+                  >
+                    <option value="">Select Day</option>
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
+                      <option key={day} value={day}>{day}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Time</label>
+                  <input
+                    type="time"
+                    name="TimelineTime"
+                    value={feed.TimelineTime || ""}
+                    onChange={handleChange}
+                    className="w-1/4 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+
+            {feed.Frequency === "Monthly" && (
+              <div className="grid grid-cols gap-4">
+                <div>
+                  <label className="block font-medium mb-1">Date of Month</label>
+                  <input
+                    type="number"
+                    name="TimelineDate"
+                    value={feed.TimelineDate || ""}
+                    min={1}
+                    max={31}
+                    onChange={handleChange}
+                    className="w-1/6 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Time</label>
+                  <input
+                    type="time"
+                    name="TimelineTime"
+                    value={feed.TimelineTime || ""}
+                    onChange={handleChange}
+                    className="w-1/6 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+              >
+                Update Frequency
+              </button>
+            </div>
+          </form>
+        )}
+        {/* {activeTab === "Feed Details" && (
 
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-2 gap-6 bg-white rounded-xl p-6"
           >
-            {/* Project */}
+      
             <div>
               <label className="block font-medium mb-1">Project *</label>
               <input
@@ -116,7 +249,7 @@ function FeedUpdate() {
 
             </div>
 
-            {/* Feed Title */}
+       
             <div>
               <label className="block font-medium mb-1">Feed Name *</label>
               <input
@@ -129,7 +262,6 @@ function FeedUpdate() {
 
             </div>
 
-            {/* Platform */}
             <div>
               <label className="block font-medium mb-1">Platform *</label>
               <input
@@ -141,7 +273,7 @@ function FeedUpdate() {
               />
             </div>
 
-            {/* Developers */}
+           
             <div>
               <label className="block font-medium mb-1">Developers *</label>
               <input
@@ -153,7 +285,7 @@ function FeedUpdate() {
               />
             </div>
 
-            {/* QA */}
+            
             <div>
               <label className="block font-medium mb-1">QA *</label>
               <input
@@ -187,37 +319,10 @@ function FeedUpdate() {
               />
             </div>
 
-            {/* Approx No of Input Listings */}
-            {/* <div>
-          <label className="block text-sm font-medium mb-1">
-            Approx No of Input Listings *
-          </label>
-          <input
-            type="number"
-            name="inputListings"
-            value={feed.inputListings || ""}
-            onChange={handleChange}
-            className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-          />
-        </div> */}
-
-            {/* Approx No of Output Listings */}
-            {/* <div>
-          <label className="block font-medium mb-1">
-            Approx No of Output Listings *
-          </label>
-          <input
-            type="number"
-            name="outputListings"
-            value={feed.outputListings || ""}
-            onChange={handleChange}
-            className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-          />
-        </div> */}
+           
 
 
-
-            {/* Remark */}
+        
             <div>
               <label className="block font-medium mb-1">Feed Status</label>
               <input
@@ -229,7 +334,7 @@ function FeedUpdate() {
               />
             </div>
 
-            {/* Submit */}
+        
             <div className="col-span-2 flex justify-end">
               <button
                 type="submit"
@@ -240,108 +345,8 @@ function FeedUpdate() {
 
             </div>
           </form>
-        )}
-        {activeTab === "Frequency" && (
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 gap-6 bg-white rounded-xl p-6"
-          >
-            <label className="block font-medium mb-2">Frequency *</label>
-            <div className="flex gap-4 mb-4">
-              {["Daily", "Weekly", "Monthly"].map((freq) => (
-                <label key={freq} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="Frequency"
-                    value={freq}
-                    checked={feed.Frequency === freq}
-                    onChange={handleChange}
-                  />
-                  {freq}
-                </label>
-              ))}
-            </div>
+        )} */}
 
-            {/* Timeline Input */}
-            {feed.Frequency === "Daily" && (
-              <div>
-                <label className="block font-medium mb-1">Delivery Time</label>
-                <input
-                  type="time"
-                  name="Timeline"
-                  value={feed.Timeline || ""}
-                  onChange={handleChange}
-                  className="w-1/6 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-                />
-              </div>
-            )}
-
-            {feed.Frequency === "Weekly" && (
-              <div className="grid grid-cols gap-4">
-                <div>
-                  <label className="block font-medium mb-1">Day of Week</label>
-                  <select
-                    name="TimelineDay"
-                    value={feed.TimelineDay || ""}
-                    onChange={handleChange}
-                    className="w-1/4 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-                  >
-                    <option value="">Select Day</option>
-                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
-                      <option key={day} value={day}>{day}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Time</label>
-                  <input
-                    type="time"
-                    name="TimelineTime"
-                    value={feed.TimelineTime || ""}
-                    onChange={handleChange}
-                    className="w-1/4 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-                  />
-                </div>
-              </div>
-            )}
-
-            {feed.Frequency === "Monthly" && (
-              <div className="grid grid-cols gap-4">
-                <div>
-                  <label className="block font-medium mb-1">Date of Month</label>
-                  <input
-                    type="number"
-                    name="TimelineDate"
-                    value={feed.TimelineDate || ""}
-                    min={1}
-                    max={31}
-                    onChange={handleChange}
-                    className="w-1/6 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Time</label>
-                  <input
-                    type="time"
-                    name="TimelineTime"
-                    value={feed.TimelineTime || ""}
-                    onChange={handleChange}
-                    className="w-1/6 bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
-              >
-                Update Frequency
-              </button>
-            </div>
-          </form>
-        )}
 
       </div>
     </>

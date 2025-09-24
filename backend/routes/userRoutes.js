@@ -9,7 +9,7 @@ import Project from "../models/Projects.js";
 import WorkReport from "../models/WorkReport.js";
 import { roleHierarchy } from "../config/roleHierarchy.js";
 import { getUsersByRoleAndDepartment } from "../controllers/authController.js";
-import { getSearchUsers, getPMAndQAUsers, getTLAndDevelopers } from "../controllers/userController.js";
+import { getSearchUsers, getPMAndQAUsers, getTLAndDevelopers, getBDE } from "../controllers/userController.js";
 const router = express.Router();
 
 // router.get("/", protect, authorize("users", "read"), async (req, res) => {
@@ -212,6 +212,8 @@ router.get("/", async (req, res) => {
 router.get("/search", getSearchUsers);
 
 router.get("/by-role",protect, getUsersByRoleAndDepartment);
+
+router.get("/bde", getBDE)
 
 router.get("/pm-qa", protect, getPMAndQAUsers);
 

@@ -12,35 +12,10 @@ import AssignQAModal from "../components/AssignToQa";
 import FeedModel from "../components/CreateFeed";
 
 // import QaActionsModal from "../components/QAActionModel";
-
-const tabs = [
-  "Projects",
-  "Today",
-  "Tomorrow",
-  "Yesterday",
-  "This Week",
-  "Last Week",
-  "Next Week",
-  "This Month",
-  "Next Month",
-  "Last Month",
-  "Date",
-];
-
-// const statusTabs = ["All", "New", "Under Development", "assigned_to_qa", "qa_passed", "qa_failed", "Completed"];
-const statusTabs = [
-  { key: "All", label: "All" },
-  { key: "New", label: "New" },
-  { key: "Under Development", label: "Under Development" },
-  { key: "assigned_to_qa", label: "Assigned to QA" },
-  { key: "qa_passed", label: "QA Passed" },
-  { key: "qa_failed", label: "QA Failed" },
-  { key: "Completed", label: "Completed" },
-];
 export default function Projects() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("Projects");
+  const [activeTab, setActiveTab] = useState("All");
   const [search, setSearch] = useState("");
   const [entries, setEntries] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,6 +40,31 @@ export default function Projects() {
   // const canCreateProject = user?.permissions?.some(
   //   (perm) => perm.module === "Project" && perm.actions.includes("create")
   // );
+
+const tabs = [
+  "All",
+  "Today",
+  "Tomorrow",
+  "Yesterday",
+  "This Week",
+  "Last Week",
+  "Next Week",
+  "This Month",
+  "Next Month",
+  "Last Month",
+  "Date",
+];
+
+// const statusTabs = ["All", "New", "Under Development", "assigned_to_qa", "qa_passed", "qa_failed", "Completed"];
+const statusTabs = [
+  { key: "All", label: "All" },
+  { key: "New", label: "New" },
+  { key: "Under Development", label: "Under Development" },
+  { key: "assigned_to_qa", label: "Assigned to QA" },
+  { key: "qa_passed", label: "QA Passed" },
+  { key: "qa_failed", label: "QA Failed" },
+  { key: "Completed", label: "Completed" },
+];
 
   const canCreateProject =
     user?.permissions?.some(
@@ -112,11 +112,59 @@ export default function Projects() {
       setLoading(false);
     }
   };
-
-
   useEffect(() => {
     fetchProjects();
   }, [activeTab, activeStatus, entries, pageSize, currentPage, search]);
+
+  
+
+//   const fetchProjects = async () => {
+//     try {
+//       setLoading(true);
+//       const params = new URLSearchParams({
+//         status: activeStatus !== "All" ? activeStatus : "",
+//         date_range: activeTab.toLowerCase().replace(" ", "_"),
+//         page: currentPage.toString(),
+//         pageSize: entries.toString(),
+//         search: search || "",
+//         department: user.department || "",
+//       });
+
+//       const response = await fetch(
+//         `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects?${params.toString()}`,
+//         { credentials: "include" }
+//       );
+//       const result = await response.json();
+
+//       if (response.ok) {
+//         // Flatten feeds for table display
+//         const feedRows = [];
+//         (result.data || []).forEach(project => {
+//           if (project.Feeds?.length > 0) {
+//             project.Feeds.forEach(feed => {
+//               feedRows.push({ ...feed, projectId: project }); // keep project info in projectId
+//             });
+//           } else {
+//             feedRows.push({ projectId: project }); // project with no feeds
+//           }
+//         });
+
+//         setData(feedRows);
+//         setPageSize(result.pageSize);
+//         setCurrentPage(result.page || 1);
+//         setTotalPages(Math.ceil(result.total / result.pageSize) || 1);
+//       } else {
+//         console.error("Failed to fetch projects:", result.message);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching projects:", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+// useEffect(() => {
+//     fetchProjects();
+//   }, [activeTab, activeStatus, entries, pageSize, currentPage, search]);
 
   // const columns = [
   //   "No",
@@ -144,69 +192,147 @@ export default function Projects() {
   // ];
 
 
-  useEffect(() => {
-    const fetchFeeds = async () => {
-      const status = activeStatus !== "All" ? activeStatus : "";
-      try {
-        setLoading(true);
-        const res = await fetch(
-          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed?page=1&limit=10&status=${status}`,
-          {
-            credentials: "include",
-          }
-        );
+  // useEffect(() => {
+  //   const fetchFeeds = async () => {
+  //     const status = activeStatus !== "All" ? activeStatus : "";
+  //     try {
+  //       setLoading(true);
+  //       const res = await fetch(
+  //         `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed?page=1&limit=10&status=${status}`,
+  //         {
+  //           credentials: "include",
+  //         }
+  //       );
 
-        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+  //       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
-        const data = await res.json();
-        console.log(data)
-        setFeeds(data.data || []);
-        setTotalPages(data.totalPages || 1);
-      } catch (err) {
-        console.error("Error fetching feed data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  //       const data = await res.json();
+  //       console.log(data)
+  //       setFeeds(data.data || []);
+  //       setTotalPages(data.totalPages || 1);
+  //     } catch (err) {
+  //       console.error("Error fetching feed data:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchFeeds();
-  }, [status]);
+  //   fetchFeeds();
+  // }, [status]);
 
   // Manually define column headers
-  const columns = [
-    "No",
-    "Project Name",
-    "Feed Name",
-    "Frequency",
-    "Platform",
-    "Status",
-    "BAU",
-    "POC",
-    "PM",
-    "PC",
-    "TL",
-    "Developer",
-    "QA",
-    "BAU Person",
-    "Feed ID",
-    "Framework type",
-    "QA Report Count",
-    "Manage By",
-    "QA Rules",
-    "DB Status",
-    "DB Type",
-    "Created Date",
-    "Created By",
-    "Actions",
+  // const columns = [
+  //   "No",
+  //   "Project Name",
+  //   "Feed Name",
+  //   "Frequency",
+  //   "Platform",
+  //   "Status",
+  //   "BAU",
+  //   "POC",
+  //   "PM",
+  //   "PC",
+  //   "TL",
+  //   "Developer",
+  //   "QA",
+  //   "BAU Person",
+  //   "Feed ID",
+  //   "Framework type",
+  //   "QA Report Count",
+  //   "Manage By",
+  //   "QA Rules",
+  //   "DB Status",
+  //   "DB Type",
+  //   "Created Date",
+  //   "Created By",
+  //   "Actions",
 
-  ];
+  // ];
+  const role = user?.roleName;
+  const baseColumns = ["No"];
 
+  const roleColumns = {
+    Superadmin: [
+      "Frequency", "Platform", "BAU", "POC", "PM", "PC", "TL",
+      "Developer", "QA", "BAU Person", "Feed ID", "Framework type",
+      "QA Report Count", "Manage By", "QA Rules", "DB Status", "DB Type", "Created By",
+    ],
+    Manager: ["Project Name",
+      "Feed Name",
+      "Feed ID",
+      "Frequency",
+      "Platform",
+      "Status",
+      "BAU",
+      "POC",
+      "PM",
+      "PC",
+      "TL",
+      "Developer",
+      "QA",
+      "BAU Person",
+      "SOW",
+      "Sample Files",
+      "Framework type",
+      "QA Report Count",
+      "Manage By",
+      "QA Rules",
+      "DB Status",
+      "DB Type",
+      "Created Date",
+      "Project Created By",
+      "Actions"],
+    "Team Lead": ["Project Name",
+      "Feed Name",
+      "Feed ID",
+      "Frequency",
+      "Platform",
+      "Status",
+      "BAU",
+      "POC",
+      "PM",
+      "PC",
+      "TL",
+      "Developer",
+      "QA",
+      "BAU Person",
+      "SOW",
+      "Sample Files",
+      "Framework type",
+      "QA Report Count",
+      "Manage By",
+      "QA Rules",
+      "DB Status",
+      "DB Type",
+      "Created Date"],
+    QA: ["QA Report Count", "QA Rules"],
+    Developer: ["Framework type", "DB Status", "DB Type"],
+  };
+
+  const columns = [...baseColumns, ...(roleColumns[role] || [])];
+  let feedCounter = 1;
   return (
     <>
       <div className="px-4 pt-2">
         {/* Tabs */}
         <div className="bg-gray-100 px-2 py-2 rounded-md mb-4 flex flex-wrap gap-1 select-none">
-          {tabs.map((tab) => (
+          {tabs.map((tab) => {
+            // Hide tabs for Sales department
+            if (user.department === "Sales") return null;
+
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1 rounded font-medium ${activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-300 text-gray-700"
+                  }`}
+              >
+                {tab}
+              </button>
+            );
+          })}
+
+          {/* {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -215,7 +341,7 @@ export default function Projects() {
             >
               {tab}
             </button>
-          ))}
+          ))} */}
           {canCreateProject && (
             <button
               className="ml-auto bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded transition"
@@ -341,7 +467,305 @@ export default function Projects() {
         </div>
 
         {/* Table */}
-        {user?.department === "Sales" && (
+        {user?.roleName === "Sales Head" && (
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100 text-gray-700 sticky top-0">
+                <tr>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">BDE</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created By</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created Date</th>
+
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-4 text-gray-500"
+                    >
+                      <div className="flex justify-center items-center">
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-blue-600"></div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : data.length > 0 ? (
+                  data.map((row, idx) => (
+                    <tr
+                      key={row._id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <td className="px-3 py-2">{(currentPage - 1) * pageSize + idx + 1}</td>
+                      <td className="px-3 py-2">{row.ProjectCode ?? "-"}</td>
+                      <td
+                        className="px-3 py-2"
+                      >
+                        {row.ProjectName ?? "-"}
+                      </td>
+                      <td className="px-3 py-2" >
+                        <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
+                          {row.SOWFile ?? "-"}
+                        </a>
+                      </td>
+                      {/* <td className="px-3 py-2"> 
+                      <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
+                        {row.SampleFiles ?? "-"}
+                      </a>
+                    </td> */}
+                      <td className="px-3 py-2 relative">
+                        {row.SampleFiles && row.SampleFiles.length > 0 ? (
+                          <div
+                            style={{ display: "inline-block", position: "relative" }}
+                            onMouseEnter={() => setOpenRow(idx)}
+                            onMouseLeave={() => setOpenRow(null)}
+                          >
+                            <span
+                              style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
+                            >
+                              {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Files`}
+                            </span>
+
+                            {openRow === idx && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "100%",
+                                  left: 0,
+                                  marginTop: "0.25rem",
+                                  minWidth: "180px",
+                                  maxHeight: "200px",
+                                  overflowY: "auto",
+                                  backgroundColor: "#fff",
+                                  border: "1px solid #e5e7eb",
+                                  borderRadius: "0.5rem",
+                                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                                  padding: "0.5rem",
+                                  zIndex: 50,
+                                }}
+                              >
+                                <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
+                                  {row.SampleFiles.map((file, fileIdx) => (
+                                    <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
+                                      <a
+                                        href={file}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          display: "block",
+                                          color: "#2563eb",
+                                          textDecoration: "none",
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                        }}
+                                      >
+                                        {/* Link {fileIdx + 1} */}
+                                        {file}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: "#9ca3af" }}>-</span>
+                        )}
+                      </td>
+
+                      <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
+                      <td className="px-3 py-2">{row.PMId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.BDEId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.CreatedBy?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{new Date(row.CreatedDate).toLocaleDateString() ?? "-"}</td>
+
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-8 text-gray-500"
+                    >
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <img
+                          src={Img}
+                          alt="No data"
+                          className="w-32 h-32 object-contain opacity-80"
+                        />
+                        <p className="font-semibold text-lg text-gray-600">
+                          No Data Found
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Try adding new projects to see them here.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {user?.roleName == "Sales Manager" && (
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100 text-gray-700 sticky top-0">
+                <tr>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">BDE</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created By</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created Date</th>
+
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-4 text-gray-500"
+                    >
+                      <div className="flex justify-center items-center">
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-blue-600"></div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : data.length > 0 ? (
+                  data.map((row, idx) => (
+                    <tr
+                      key={row._id || idx}
+                      className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                    >
+                      <td className="px-3 py-2">{(currentPage - 1) * pageSize + idx + 1}</td>
+                      <td className="px-3 py-2">{row.ProjectCode ?? "-"}</td>
+                      <td
+                        className="px-3 py-2"
+                      >
+                        {row.ProjectName ?? "-"}
+                      </td>
+                      <td className="px-3 py-2" >
+                        <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
+                          {row.SOWFile ?? "-"}
+                        </a>
+                      </td>
+                      {/* <td className="px-3 py-2"> 
+                      <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
+                        {row.SampleFiles ?? "-"}
+                      </a>
+                    </td> */}
+                      <td className="px-3 py-2 relative">
+                        {row.SampleFiles && row.SampleFiles.length > 0 ? (
+                          <div
+                            style={{ display: "inline-block", position: "relative" }}
+                            onMouseEnter={() => setOpenRow(idx)}
+                            onMouseLeave={() => setOpenRow(null)}
+                          >
+                            <span
+                              style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
+                            >
+                              {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Files`}
+                            </span>
+
+                            {openRow === idx && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "100%",
+                                  left: 0,
+                                  marginTop: "0.25rem",
+                                  minWidth: "180px",
+                                  maxHeight: "200px",
+                                  overflowY: "auto",
+                                  backgroundColor: "#fff",
+                                  border: "1px solid #e5e7eb",
+                                  borderRadius: "0.5rem",
+                                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                                  padding: "0.5rem",
+                                  zIndex: 50,
+                                }}
+                              >
+                                <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
+                                  {row.SampleFiles.map((file, fileIdx) => (
+                                    <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
+                                      <a
+                                        href={file}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          display: "block",
+                                          color: "#2563eb",
+                                          textDecoration: "none",
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                        }}
+                                      >
+                                        {/* Link {fileIdx + 1} */}
+                                        {file}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: "#9ca3af" }}>-</span>
+                        )}
+                      </td>
+
+                      <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
+                      <td className="px-3 py-2">{row.PMId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.BDEId?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{row.CreatedBy?.name ?? "-"}</td>
+                      <td className="px-3 py-2">{new Date(row.CreatedDate).toLocaleDateString() ?? "-"}</td>
+
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center p-8 text-gray-500"
+                    >
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <img
+                          src={Img}
+                          alt="No data"
+                          className="w-32 h-32 object-contain opacity-80"
+                        />
+                        <p className="font-semibold text-lg text-gray-600">
+                          No Data Found
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Try adding new projects to see them here.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {user?.roleName === "Business Development Executive" && (
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100 text-gray-700 sticky top-0">
@@ -380,6 +804,7 @@ export default function Projects() {
                       <td className="px-3 py-2">{row.ProjectCode ?? "-"}</td>
                       <td
                         className="px-3 py-2"
+                      // onClick={() => navigate(`/project/${row._id}`)}
                       >
                         {row.ProjectName ?? "-"}
                       </td>
@@ -488,7 +913,7 @@ export default function Projects() {
           </div>
         )}
 
-        {user?.roleName === "Manager" &&(
+        {user?.roleName === "Manager" && (
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200 ">
               <thead className="bg-gray-100 text-gray-700 sticky top-0">
@@ -506,263 +931,223 @@ export default function Projects() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td
-                      colSpan={columns.length}
-                      className="text-center p-8 text-gray-500"
-                    >
+                    <td colSpan={columns.length} className="text-center p-8 text-gray-500">
                       <div className="flex justify-center items-center">
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-                        {/* <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span> */}
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-blue-600"></div>
                       </div>
                     </td>
                   </tr>
-                ) : feeds.length > 0 ? (
-                  feeds.map((row, idx) => (
-                    <tr
-                      key={row._id || idx}
-                      className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                    >
+                ) : data.length > 0 ? (
+                  data.map((project, idx) =>
+                    project.Feeds && project.Feeds.length > 0 ? (
+                      project.Feeds.map((feed, feedIdx) => (
+                        <tr key={`${project._id}-${feed._id}`} className={feedIdx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                          {/* No */}
+                          <td className="px-3 py-2">{feedCounter++}</td>
 
-                      {/* <td className="px-3 py-2">{row.No ?? "-"}</td> */}
-                      <td className="px-3 py-2">{idx + 1}</td>
-                      {/* <td className="px-3 py-2">{row.ProjectName ?? "-"}</td> */}
-                      <td className="px-3 py-2">
-                        {row.projectId?.ProjectCode && row.projectId?.ProjectName
-                          ? `[${row.projectId.ProjectCode}] ${row.projectId.ProjectName}`
-                          : "-"}
-                      </td>
+                          {/* Project Name */}
+                          <td className="px-3 py-2">
+                            {project.ProjectCode && project.ProjectName
+                              ? `[${project.ProjectCode}] ${project.ProjectName}`
+                              : "-"}
+                          </td>
 
-                      <td
-                        className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
-                        onClick={() =>
-                          (window.location.href = `/feed/${row._id}`)
-                        }
-                      >
-                        {row.FeedName ?? "-"}
-                      </td>
-                      <td className="px-3 py-2">{row.projectId?.Frequency ?? "-"}</td>
-                      {/* <td className="px-3 py-2">{row.projectId?.Platform ?? "-"}</td> */}
-                      <td className="px-3 py-2">
-                        {row.DomainName && row.ApplicationType && row.CountryName
-                          ? `${row.DomainName}|${row.ApplicationType}|${row.CountryName}`
-                          : "-"}
-                      </td>
-                      <td className="px-3 py-2">{row.projectId?.Status ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.BAU ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.POC ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.PMId?.name ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.PC ?? "-"}</td>
-                      <td className="px-3 py-2">{row?.TLId?.name ?? "-"}</td>
-                      <td className="px-3 py-2">{row?.DeveloperIds?.length
-                        ? row.DeveloperIds.map(dev => dev.name).join(", ")
-                        : "-"}</td>
-                      <td className="px-3 py-2">{row?.QAId?.name ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.BAUPerson ?? "-"}</td>
-                      <td className="px-3 py-2">{row.FeedId ?? "-"}</td>
-                      <td className="px-3 py-2">
-                        {row.projectId?.FrameworkType ?? "-"}
-                      </td>
-                      <td className="px-3 py-2">
-                        {row.projectId?.QAReportCount ?? "-"}
-                      </td>
-                      <td className="px-3 py-2">{row.projectId?.ManageBy ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.QARules ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.DBStatus ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.DBType ?? "-"}</td>
-                      <td className="px-3 py-2"> {row.createdDate ? new Date(row.createdDate).toLocaleDateString() : "-"}</td>
-                      <td className="px-3 py-2">{row?.createdBy.name ?? "-"}</td>
-                      <td className="px-3 py-2">
-                        <button>
-                          <span
-                            className="text-blue-600 cursor-pointer hover:underline"
-                            // onClick={() =>
-                            //   (window.location.href = `/feed/${row._id}`)
-                            // }
+                          {/* Feed Name */}
+                          <td
+                            className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
+                            onClick={() => (window.location.href = `/feed/${feed._id}`)}
                           >
-                            Assign Feed to QA
-                          </span>
-                        </button>
-                      </td>
-                      {/* <td className="px-3 py-2"></td> */}
-                    </tr>
-                  ))
+                            {feed.FeedName ?? "-"}
+                          </td>
+
+
+                          {/* Feed ID */}
+                          <td className="px-3 py-2">{feed.FeedId ?? "-"}</td>
+
+                          {/* Frequency */}
+                          <td className="px-3 py-2">{project.Frequency ?? "-"}</td>
+
+                          {/* Platform / Domain | Application | Country */}
+                          <td className="px-3 py-2">
+                            {feed.DomainName && feed.ApplicationType && feed.CountryName
+                              ? `${feed.DomainName}|${feed.ApplicationType}|${feed.CountryName}`
+                              : "-"}
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-3 py-2">{feed.Status ?? "-"}</td>
+
+                          {/* BAU */}
+                          <td className="px-3 py-2">{feed.BAU ?? "-"}</td>
+
+                          {/* POC */}
+                          <td className="px-3 py-2">{feed.POC ?? "-"}</td>
+
+                          {/* PM */}
+                          <td className="px-3 py-2">{project.PMId?.name ?? "-"}</td>
+
+                          {/* PC */}
+                          <td className="px-3 py-2">{feed.PC ?? "-"}</td>
+
+                          {/* TL */}
+                          <td className="px-3 py-2">{feed.TLId?.name ?? "-"}</td>
+
+                          {/* Developer */}
+                          <td className="px-3 py-2">
+                            {feed.DeveloperIds?.length
+                              ? feed.DeveloperIds
+                                .map((dev) => (dev && dev.name ? dev.name : dev._id || dev))
+                                .join(", ")
+                              : "-"}
+                          </td>
+
+                          {/* QA */}
+                          <td className="px-3 py-2">{feed.QAId?.name ?? "-"}</td>
+
+                          {/* BAU Person */}
+                          <td className="px-3 py-2">{feed.BAUPersonId ?? "-"}</td>
+
+                          {/* SOW and Sample files */}
+                          <td className="px-3 py-2" >
+                            <a href={feed.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
+                              {project.SOWFile ?? "-"}
+                            </a>
+                          </td>
+                          {/* <td className="px-3 py-2"> 
+                      <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
+                        {row.SampleFiles ?? "-"}
+                      </a>
+                    </td> */}
+                          <td className="px-3 py-2 relative">
+                            {project.SampleFiles && project.SampleFiles.length > 0 ? (
+                              <div
+                                style={{ display: "inline-block", position: "relative" }}
+                                onMouseEnter={() => setOpenRow(idx)}
+                                onMouseLeave={() => setOpenRow(null)}
+                              >
+                                <span
+                                  style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
+                                >
+                                  {project.SampleFiles.length === 1 ? "View File" : `${project.SampleFiles.length} Files`}
+                                </span>
+
+                                {openRow === idx && (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: "100%",
+                                      left: 0,
+                                      marginTop: "0.25rem",
+                                      minWidth: "180px",
+                                      maxHeight: "200px",
+                                      overflowY: "auto",
+                                      backgroundColor: "#fff",
+                                      border: "1px solid #e5e7eb",
+                                      borderRadius: "0.5rem",
+                                      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                                      padding: "0.5rem",
+                                      zIndex: 50,
+                                    }}
+                                  >
+                                    <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
+                                      {project.SampleFiles.map((file, fileIdx) => (
+                                        <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
+                                          <a
+                                            href={file}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                              display: "block",
+                                              color: "#2563eb",
+                                              textDecoration: "none",
+                                              whiteSpace: "nowrap",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                            }}
+                                          >
+                                            {/* Link {fileIdx + 1} */}
+                                            {file}
+                                          </a>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span style={{ color: "#9ca3af" }}>-</span>
+                            )}
+                          </td>
+
+
+
+                          {/* Framework Type */}
+                          <td className="px-3 py-2">{feed.FrameworkType ?? "-"}</td>
+
+                          {/* QA Report Count */}
+                          <td className="px-3 py-2">{project.QAReportCount ?? "-"}</td>
+
+                          {/* Manage By */}
+                          <td className="px-3 py-2">{project.ManageBy ?? "-"}</td>
+
+                          {/* QA Rules */}
+                          <td className="px-3 py-2">{project.QARules ?? "-"}</td>
+
+                          {/* DB Status */}
+                          <td className="px-3 py-2">{project.DBStatus ?? "-"}</td>
+
+                          {/* DB Type */}
+                          <td className="px-3 py-2">{project.DBType ?? "-"}</td>
+
+                          {/* Created Date */}
+                          <td className="px-3 py-2">
+                            {project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : "-"}
+                          </td>
+
+                          {/* Created By */}
+                          <td className="px-3 py-2">{project.CreatedBy?.name ?? "-"}</td>
+
+                          {/* Actions */}
+                          <td className="px-3 py-2">
+                            <button>
+                              <span className="text-blue-600 cursor-pointer hover:underline">
+                                Assign Feed to QA
+                              </span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      // No feeds
+                      <tr key={project._id}>
+                        <td className="px-3 py-2">{idx + 1}</td>
+                        <td className="px-3 py-2">{project.ProjectName ?? "-"}</td>
+                        <td className="px-3 py-2 " colSpan={columns.length - 2}>
+                          <p className="text-sm text-gray-400">Try adding new feeds to see them here.</p>
+                        </td>
+
+                      </tr>
+                    )
+                  )
                 ) : (
                   <tr>
-                    <td
-                      colSpan={columns.length}
-                      className="text-center p-8 text-gray-500"
-                    >
+                    <td colSpan={columns.length} className="text-center p-8 text-gray-500">
                       <div className="flex flex-col items-center justify-center gap-3">
-                        <img
-                          src={Img}
-                          alt="No data"
-                          className="w-32 h-32 object-contain opacity-80"
-                        />
-                        <p className="font-semibold text-lg text-gray-600">
-                          No Data Found
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          Try adding new feeds to see them here.
-                        </p>
+                        <img src={Img} alt="No data" className="w-32 h-32 object-contain opacity-80" />
+                        <p className="font-semibold text-lg text-gray-600">No Data Found</p>
+                        <p className="text-sm text-gray-400">Try adding new feeds to see them here.</p>
                       </div>
                     </td>
                   </tr>
                 )}
               </tbody>
+
             </table>
           </div>
         )}
 
-        {user?.roleName === "Team Lead" &&(
-          // <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-          //   <table className="min-w-full divide-y divide-gray-200">
-          //     <thead className="bg-gray-100 text-gray-700 sticky top-0">
-          //       <tr>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created By</th>
-          //         <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created Date</th>
-
-          //       </tr>
-          //     </thead>
-          //     <tbody>
-          //       {loading ? (
-          //         <tr>
-          //           <td
-          //             colSpan={columns.length}
-          //             className="text-center p-4 text-gray-500"
-          //           >
-          //             <div className="flex justify-center items-center">
-          //               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-blue-600"></div>
-          //             </div>
-          //           </td>
-          //         </tr>
-          //       ) : data.length > 0 ? (
-          //         data.map((row, idx) => (
-          //           <tr
-          //             key={row._id || idx}
-          //             className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-          //           >
-          //             <td className="px-3 py-2">{(currentPage - 1) * pageSize + idx + 1}</td>
-          //             <td className="px-3 py-2">{row.ProjectCode ?? "-"}</td>
-          //             <td
-          //               className="px-3 py-2 cursor-pointer text-blue-600 hover:text-blue-800"
-          //               onClick={() => {
-          //                 if (user.roleName !== "Developer") {
-          //                   navigate(`/project/feed`);
-          //                 }
-          //               }}
-          //             >
-          //               {row.ProjectName ?? "-"}
-          //             </td>
-          //             <td className="px-3 py-2" >
-          //               <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
-          //                 {row.SOWFile ?? "-"}
-          //               </a>
-          //             </td>
-          //             {/* <td className="px-3 py-2"> 
-          //             <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
-          //               {row.SampleFiles ?? "-"}
-          //             </a>
-          //           </td> */}
-          //             <td className="px-3 py-2 relative">
-          //               {row.SampleFiles && row.SampleFiles.length > 0 ? (
-          //                 <div
-          //                   style={{ display: "inline-block", position: "relative" }}
-          //                   onMouseEnter={() => setOpenRow(idx)}
-          //                   onMouseLeave={() => setOpenRow(null)}
-          //                 >
-          //                   <span
-          //                     style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
-          //                   >
-          //                     {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Files`}
-          //                   </span>
-
-          //                   {openRow === idx && (
-          //                     <div
-          //                       style={{
-          //                         position: "absolute",
-          //                         top: "100%",
-          //                         left: 0,
-          //                         marginTop: "0.25rem",
-          //                         minWidth: "180px",
-          //                         maxHeight: "200px",
-          //                         overflowY: "auto",
-          //                         backgroundColor: "#fff",
-          //                         border: "1px solid #e5e7eb",
-          //                         borderRadius: "0.5rem",
-          //                         boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-          //                         padding: "0.5rem",
-          //                         zIndex: 50,
-          //                       }}
-          //                     >
-          //                       <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
-          //                         {row.SampleFiles.map((file, fileIdx) => (
-          //                           <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
-          //                             <a
-          //                               href={file}
-          //                               target="_blank"
-          //                               rel="noopener noreferrer"
-          //                               style={{
-          //                                 display: "block",
-          //                                 color: "#2563eb",
-          //                                 textDecoration: "none",
-          //                                 whiteSpace: "nowrap",
-          //                                 overflow: "hidden",
-          //                                 textOverflow: "ellipsis",
-          //                               }}
-          //                             >
-          //                               {/* Link {fileIdx + 1} */}
-          //                               {file}
-          //                             </a>
-          //                           </li>
-          //                         ))}
-          //                       </ul>
-          //                     </div>
-          //                   )}
-          //                 </div>
-          //               ) : (
-          //                 <span style={{ color: "#9ca3af" }}>-</span>
-          //               )}
-          //             </td>
-
-          //             <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
-          //             <td className="px-3 py-2">{row.PMId?.name ?? "-"}</td>
-          //             <td className="px-3 py-2">{row.CreatedBy?.name ?? "-"}</td>
-          //             <td className="px-3 py-2">{new Date(row.CreatedDate).toLocaleDateString() ?? "-"}</td>
-
-          //           </tr>
-          //         ))
-          //       ) : (
-          //         <tr>
-          //           <td
-          //             colSpan={columns.length}
-          //             className="text-center p-8 text-gray-500"
-          //           >
-          //             <div className="flex flex-col items-center justify-center gap-3">
-          //               <img
-          //                 src={Img}
-          //                 alt="No data"
-          //                 className="w-32 h-32 object-contain opacity-80"
-          //               />
-          //               <p className="font-semibold text-lg text-gray-600">
-          //                 No Data Found
-          //               </p>
-          //               <p className="text-sm text-gray-400">
-          //                 Try adding new projects to see them here.
-          //               </p>
-          //             </div>
-          //           </td>
-          //         </tr>
-          //       )}
-          //     </tbody>
-          //   </table>
-          // </div>
+        {user?.roleName === "Team Lead" && (
+         
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200 ">
               <thead className="bg-gray-100 text-gray-700 sticky top-0">
@@ -780,97 +1165,143 @@ export default function Projects() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td
-                      colSpan={columns.length}
-                      className="text-center p-8 text-gray-500"
-                    >
+                    <td colSpan={columns.length} className="text-center p-8 text-gray-500">
                       <div className="flex justify-center items-center">
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-                        {/* <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span> */}
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-blue-600"></div>
                       </div>
                     </td>
                   </tr>
-                ) : feeds.length > 0 ? (
-                  feeds.map((row, idx) => (
-                    <tr
-                      key={row._id || idx}
-                      className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                    >
+                ) : data.length > 0 ? (
+                  data.map((project, idx) =>
+                    project.Feeds && project.Feeds.length > 0 ? (
+                      project.Feeds.map((feed, feedIdx) => (
+                        <tr
+                          key={`${project._id}-${feed._id}`}
+                          className={feedIdx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                        >
+                          {/* No */}
+                          <td className="px-3 py-2">{feedCounter++}</td>
 
-                      {/* <td className="px-3 py-2">{row.No ?? "-"}</td> */}
-                      <td className="px-3 py-2">{idx + 1}</td>
-                      {/* <td className="px-3 py-2">{row.ProjectName ?? "-"}</td> */}
-                      <td className="px-3 py-2">
-                        {row.projectId?.ProjectCode && row.projectId?.ProjectName
-                          ? `[${row.projectId.ProjectCode}] ${row.projectId.ProjectName}`
-                          : "-"}
-                      </td>
+                          {/* Project Name */}
+                          <td className="px-3 py-2">
+                            {project.ProjectCode && project.ProjectName
+                              ? `[${project.ProjectCode}] ${project.ProjectName}`
+                              : "-"}
+                          </td>
 
-                      <td
-                        className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
-                        onClick={() =>
-                          (window.location.href = `/feed/${row._id}`)
-                        }
-                      >
-                        {row.FeedName ?? "-"}
-                      </td>
-                      <td className="px-3 py-2">{row.projectId?.Frequency ?? "-"}</td>
-                      {/* <td className="px-3 py-2">{row.projectId?.Platform ?? "-"}</td> */}
-                      <td className="px-3 py-2">
-                        {row.DomainName && row.ApplicationType && row.CountryName
-                          ? `${row.DomainName}|${row.ApplicationType}|${row.CountryName}`
-                          : "-"}
-                      </td>
-                      <td className="px-3 py-2">{row.projectId?.Status ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.BAU ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.POC ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.PMId?.name ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.PC ?? "-"}</td>
-                      <td className="px-3 py-2">{row?.TLId?.name ?? "-"}</td>
-                      <td className="px-3 py-2">{row?.DeveloperIds?.length
-                        ? row.DeveloperIds.map(dev => dev.name).join(", ")
-                        : "-"}</td>
-                      <td className="px-3 py-2">{row?.QAId?.name ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.BAUPerson ?? "-"}</td>
-                      <td className="px-3 py-2">{row.FeedId ?? "-"}</td>
-                      <td className="px-3 py-2">
-                        {row.projectId?.FrameworkType ?? "-"}
-                      </td>
-                      <td className="px-3 py-2">
-                        {row.projectId?.QAReportCount ?? "-"}
-                      </td>
-                      <td className="px-3 py-2">{row.projectId?.ManageBy ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.QARules ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.DBStatus ?? "-"}</td>
-                      <td className="px-3 py-2">{row.projectId?.DBType ?? "-"}</td>
-                      <td className="px-3 py-2"> {row.createdDate ? new Date(row.createdDate).toLocaleDateString() : "-"}</td>
-                      <td className="px-3 py-2">{row?.createdBy.name ?? "-"}</td>
-                      {/* <td className="px-3 py-2"></td> */}
-                    </tr>
-                  ))
+                          {/* Feed Name */}
+                          <td
+                            className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
+                            onClick={() => (window.location.href = `/feed/${feed._id}`)}
+                          >
+                            {feed.FeedName ?? "-"}
+                          </td>
+
+                          {/* Feed ID */}
+                          <td className="px-3 py-2">{feed.FeedId ?? "-"}</td>
+
+                          {/* Frequency */}
+                          <td className="px-3 py-2">{project.Frequency ?? "-"}</td>
+
+                          {/* Platform / Domain | Application | Country */}
+                          <td className="px-3 py-2">
+                            {feed.DomainName && feed.ApplicationType && feed.CountryName
+                              ? `${feed.DomainName}|${feed.ApplicationType}|${feed.CountryName}`
+                              : "-"}
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-3 py-2">{feed.Status ?? "-"}</td>
+
+                          {/* BAU */}
+                          <td className="px-3 py-2">{feed.BAU ?? "-"}</td>
+
+                          {/* POC */}
+                          <td className="px-3 py-2">{feed.POC ?? "-"}</td>
+
+                          {/* PM */}
+                          <td className="px-3 py-2">{project.PMId?.name ?? "-"}</td>
+
+                          {/* PC */}
+                          <td className="px-3 py-2">{feed.PC ?? "-"}</td>
+
+                          {/* TL */}
+                          <td className="px-3 py-2">{feed.TLId?.name ?? "-"}</td>
+
+                          {/* Developer */}
+                          <td className="px-3 py-2">
+                            {feed.DeveloperIds?.length
+                              ? feed.DeveloperIds.map(dev => dev?.name ?? dev._id ?? dev).join(", ")
+                              : "-"}
+                          </td>
+
+                          {/* QA */}
+                          <td className="px-3 py-2">{feed.QAId?.name ?? "-"}</td>
+
+                          {/* BAU Person */}
+                          <td className="px-3 py-2">{feed.BAUPersonId?.name ?? "-"}</td>
+
+                      
+
+                          {/* Framework Type */}
+                          <td className="px-3 py-2">{feed.FrameworkType ?? "-"}</td>
+
+                          {/* QA Report Count */}
+                          <td className="px-3 py-2">{project.QAReportCount ?? "-"}</td>
+
+                          {/* Manage By */}
+                          <td className="px-3 py-2">{project.ManageBy ?? "-"}</td>
+
+                          {/* QA Rules */}
+                          <td className="px-3 py-2">{project.QARules ?? "-"}</td>
+
+                          {/* DB Status */}
+                          <td className="px-3 py-2">{project.DBStatus ?? "-"}</td>
+
+                          {/* DB Type */}
+                          <td className="px-3 py-2">{project.DBType ?? "-"}</td>
+
+                          {/* Created Date */}
+                          <td className="px-3 py-2">{project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : "-"}</td>
+
+                          {/* Created By */}
+                          <td className="px-3 py-2">{project.CreatedBy?.name ?? "-"}</td>
+
+                          {/* Actions */}
+                          <td className="px-3 py-2">
+                            <button>
+                              <span className="text-blue-600 cursor-pointer hover:underline">
+                                Assign Feed to QA
+                              </span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      // No feeds
+                      <tr key={project._id}>
+                        <td className="px-3 py-2">{idx + 1}</td>
+                        <td className="px-3 py-2">{project.ProjectName ?? "-"}</td>
+                        <td className="px-3 py-2" colSpan={columns.length - 2}>
+                          No feeds
+                        </td>
+                      </tr>
+                    )
+                  )
                 ) : (
                   <tr>
-                    <td
-                      colSpan={columns.length}
-                      className="text-center p-8 text-gray-500"
-                    >
+                    <td colSpan={columns.length} className="text-center p-8 text-gray-500">
                       <div className="flex flex-col items-center justify-center gap-3">
-                        <img
-                          src={Img}
-                          alt="No data"
-                          className="w-32 h-32 object-contain opacity-80"
-                        />
-                        <p className="font-semibold text-lg text-gray-600">
-                          No Data Found
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          Try adding new feeds to see them here.
-                        </p>
+                        <img src={Img} alt="No data" className="w-32 h-32 object-contain opacity-80" />
+                        <p className="font-semibold text-lg text-gray-600">No Data Found</p>
+                        <p className="text-sm text-gray-400">Try adding new feeds to see them here.</p>
                       </div>
                     </td>
                   </tr>
                 )}
               </tbody>
+
+
             </table>
           </div>
         )}
@@ -1123,7 +1554,7 @@ export default function Projects() {
             </table>
           </div>
         )}
-        
+
 
         {/* Pagination */}
         <Pagination
