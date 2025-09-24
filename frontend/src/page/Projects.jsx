@@ -41,30 +41,30 @@ export default function Projects() {
   //   (perm) => perm.module === "Project" && perm.actions.includes("create")
   // );
 
-const tabs = [
-  "All",
-  "Today",
-  "Tomorrow",
-  "Yesterday",
-  "This Week",
-  "Last Week",
-  "Next Week",
-  "This Month",
-  "Next Month",
-  "Last Month",
-  "Date",
-];
+  const tabs = [
+    "All",
+    "Today",
+    "Tomorrow",
+    "Yesterday",
+    "This Week",
+    "Last Week",
+    "Next Week",
+    "This Month",
+    "Next Month",
+    "Last Month",
+    "Date",
+  ];
 
-// const statusTabs = ["All", "New", "Under Development", "assigned_to_qa", "qa_passed", "qa_failed", "Completed"];
-const statusTabs = [
-  { key: "All", label: "All" },
-  { key: "New", label: "New" },
-  { key: "Under Development", label: "Under Development" },
-  { key: "assigned_to_qa", label: "Assigned to QA" },
-  { key: "qa_passed", label: "QA Passed" },
-  { key: "qa_failed", label: "QA Failed" },
-  { key: "Completed", label: "Completed" },
-];
+  // const statusTabs = ["All", "New", "Under Development", "assigned_to_qa", "qa_passed", "qa_failed", "Completed"];
+  const statusTabs = [
+    { key: "All", label: "All" },
+    { key: "New", label: "New" },
+    { key: "Under Development", label: "Under Development" },
+    { key: "assigned_to_qa", label: "Assigned to QA" },
+    { key: "qa_passed", label: "QA Passed" },
+    { key: "qa_failed", label: "QA Failed" },
+    { key: "Completed", label: "Completed" },
+  ];
 
   const canCreateProject =
     user?.permissions?.some(
@@ -116,55 +116,55 @@ const statusTabs = [
     fetchProjects();
   }, [activeTab, activeStatus, entries, pageSize, currentPage, search]);
 
-  
 
-//   const fetchProjects = async () => {
-//     try {
-//       setLoading(true);
-//       const params = new URLSearchParams({
-//         status: activeStatus !== "All" ? activeStatus : "",
-//         date_range: activeTab.toLowerCase().replace(" ", "_"),
-//         page: currentPage.toString(),
-//         pageSize: entries.toString(),
-//         search: search || "",
-//         department: user.department || "",
-//       });
 
-//       const response = await fetch(
-//         `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects?${params.toString()}`,
-//         { credentials: "include" }
-//       );
-//       const result = await response.json();
+  //   const fetchProjects = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const params = new URLSearchParams({
+  //         status: activeStatus !== "All" ? activeStatus : "",
+  //         date_range: activeTab.toLowerCase().replace(" ", "_"),
+  //         page: currentPage.toString(),
+  //         pageSize: entries.toString(),
+  //         search: search || "",
+  //         department: user.department || "",
+  //       });
 
-//       if (response.ok) {
-//         // Flatten feeds for table display
-//         const feedRows = [];
-//         (result.data || []).forEach(project => {
-//           if (project.Feeds?.length > 0) {
-//             project.Feeds.forEach(feed => {
-//               feedRows.push({ ...feed, projectId: project }); // keep project info in projectId
-//             });
-//           } else {
-//             feedRows.push({ projectId: project }); // project with no feeds
-//           }
-//         });
+  //       const response = await fetch(
+  //         `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects?${params.toString()}`,
+  //         { credentials: "include" }
+  //       );
+  //       const result = await response.json();
 
-//         setData(feedRows);
-//         setPageSize(result.pageSize);
-//         setCurrentPage(result.page || 1);
-//         setTotalPages(Math.ceil(result.total / result.pageSize) || 1);
-//       } else {
-//         console.error("Failed to fetch projects:", result.message);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching projects:", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-// useEffect(() => {
-//     fetchProjects();
-//   }, [activeTab, activeStatus, entries, pageSize, currentPage, search]);
+  //       if (response.ok) {
+  //         // Flatten feeds for table display
+  //         const feedRows = [];
+  //         (result.data || []).forEach(project => {
+  //           if (project.Feeds?.length > 0) {
+  //             project.Feeds.forEach(feed => {
+  //               feedRows.push({ ...feed, projectId: project }); // keep project info in projectId
+  //             });
+  //           } else {
+  //             feedRows.push({ projectId: project }); // project with no feeds
+  //           }
+  //         });
+
+  //         setData(feedRows);
+  //         setPageSize(result.pageSize);
+  //         setCurrentPage(result.page || 1);
+  //         setTotalPages(Math.ceil(result.total / result.pageSize) || 1);
+  //       } else {
+  //         console.error("Failed to fetch projects:", result.message);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching projects:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  // useEffect(() => {
+  //     fetchProjects();
+  //   }, [activeTab, activeStatus, entries, pageSize, currentPage, search]);
 
   // const columns = [
   //   "No",
@@ -511,8 +511,9 @@ const statusTabs = [
                         {row.ProjectName ?? "-"}
                       </td>
                       <td className="px-3 py-2" >
-                        <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
-                          {row.SOWFile ?? "-"}
+                        <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800 hover:underline" target="_blank" download>
+                          {/* {row.SOWFile ?? "-"} */}
+                          View File
                         </a>
                       </td>
                       {/* <td className="px-3 py-2"> 
@@ -808,11 +809,22 @@ const statusTabs = [
                       >
                         {row.ProjectName ?? "-"}
                       </td>
-                      <td className="px-3 py-2" >
-                        <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
-                          {row.SOWFile ?? "-"}
-                        </a>
+                      <td className="px-3 py-2">
+                        {row.SOWFile ? (
+                          <a
+                            href={row.SOWFile} // full URL still here for downloading
+                            className="text-blue-600 hover:text-blue-800"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download={row.SOWFile.split("/").pop()} // ensures filename is used
+                          >
+                            {row.SOWFile.split("/").pop()} // this shows only filename in the table
+                          </a>
+                        ) : (
+                          "-"
+                        )}
                       </td>
+
                       {/* <td className="px-3 py-2"> 
                       <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
                         {row.SampleFiles ?? "-"}
@@ -1147,7 +1159,7 @@ const statusTabs = [
         )}
 
         {user?.roleName === "Team Lead" && (
-         
+
           <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="min-w-full divide-y divide-gray-200 ">
               <thead className="bg-gray-100 text-gray-700 sticky top-0">
@@ -1241,7 +1253,7 @@ const statusTabs = [
                           {/* BAU Person */}
                           <td className="px-3 py-2">{feed.BAUPersonId?.name ?? "-"}</td>
 
-                      
+
 
                           {/* Framework Type */}
                           <td className="px-3 py-2">{feed.FrameworkType ?? "-"}</td>

@@ -18,6 +18,7 @@ import {
   FileText,
   User
 } from "lucide-react";
+import SalesSummaryDashboard from "../components/SalesSummaryView.jsx";
 
 function Home() {
   const { user, loading: userLoading } = useAuth();
@@ -283,24 +284,24 @@ function Home() {
         <main className="flex-1 bg-white overflow-auto p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              <Users className="w-10 h-10 text-blue-600 mr-4" />
+              {/* <Users className="w-10 h-10 text-blue-600 mr-4" /> */}
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">2</h3>
-                <p className="text-gray-600">Total Managers</p>
+                <p className="text-gray-400 text-2xl font-bold">Projects Handed Over</p>
+                <h3 className="text-xl font-semibold text-gray-800">2</h3>
               </div>
             </div>
             <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              <User className="w-10 h-10 text-blue-600 mr-4" />
+              {/* <User className="w-10 h-10 text-blue-600 mr-4" /> */}
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">3</h3>
-                <p className="text-gray-600">Total BDE</p>
+                <p className="text-gray-400 text-2xl font-bold">On-Time Deliveries</p>
+                <h3 className="text-xl font-semibold text-gray-800">3</h3>
               </div>
             </div>
             <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
               <Activity className="w-10 h-10 text-green-600 mr-4" />
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">3</h3>
-                <p className="text-gray-600">Active Projects</p>
+                <p className="text-gray-400 text-2xl font-bold">Escalation Rate</p>
+                <h3 className="text-xl font-semibold text-gray-800">3%</h3>
               </div>
             </div>
           </div>
@@ -339,6 +340,11 @@ function Home() {
           </div>
 
         </main>
+
+        // demo view
+        // <main className="flex-1 bg-white overflow-auto p-6">
+        // <SalesSummaryDashboard />
+        // </main>
 
       )}
 

@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import path from "path";
 
 import connectDB from "./config/db.js";
 
@@ -36,7 +37,9 @@ app.get("/api/menu", protect, (req, res) => {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
-app.use("/uploads", express.static("uploads")); 
+// app.use("/uploads", express.static("uploads")); 
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 
 // API Routes
 app.use("/api/auth", authRoutes);

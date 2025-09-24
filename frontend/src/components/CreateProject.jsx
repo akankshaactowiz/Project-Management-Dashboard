@@ -12,10 +12,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
   const [form, setForm] = useState({
     ProjectCode: "",
     ProjectName: "",
-    SOWLink: [], // array
-    InputLinks: [], // array
+    SOWFile: "", // array
+    InputFiles: [], // array
     Frequency: "",
     Priority: "",
+    ProjectType: "",
     Department: "",
     PM: "",
     BDE: "", // added BDE
@@ -140,31 +141,80 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
 
   // --- Save handler (include DepartmentId and BDEId) ---
+  // const handleSave = async () => {
+  //   try {
+  //     const payload = {
+  //       ProjectCode: form.ProjectCode,
+  //       ProjectName: form.ProjectName,
+  //       Frequency: form.Frequency,
+  //       Priority: form.Priority,
+  //       ProjectType: form.ProjectType,
+  //       PMId: form.PM || null,
+  //       BDEId: form.BDE || null,
+  //       DepartmentId: form.Department || null,
+  //       SOWFile: form.SOWFile, // schema expects SOWFile
+  //       SampleFiles: form.InputFiles, // schema expects SampleFiles
+  //       Timeline: form.Timeline,
+  //       Description: form.Description,
+  //     };
+
+  //     const res = await fetch(
+  //       `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects`,
+  //       {
+  //         method: "POST",
+  //         credentials: "include",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(payload),
+  //       }
+  //     );
+
+  //     const data = await res.json();
+  //     if (data.success) {
+  //       alert("Project created successfully!");
+  //       onClose();
+  //     } else {
+  //       alert(data.message || "Something went wrong");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving project:", error);
+  //     alert("Failed to save project");
+  //   }
+  // };
+
   const handleSave = async () => {
     try {
-      const payload = {
-        ProjectCode: form.ProjectCode,
-        ProjectName: form.ProjectName,
-        Frequency: form.Frequency,
-        Priority: form.Priority,
-        PMId: form.PM || null,
-        BDEId: form.BDE || null,
-        DepartmentId: form.Department || null,
-        SOWFile: form.SOWLink, // schema expects SOWFile
-        SampleFiles: form.InputLinks, // schema expects SampleFiles
-        Timeline: form.Timeline,
-        Description: form.Description,
-      };
+      const formData = new FormData();
+
+      // Append regular fields
+      formData.append("ProjectCode", form.ProjectCode);
+      formData.append("ProjectName", form.ProjectName);
+      formData.append("Frequency", form.Frequency);
+      formData.append("Priority", form.Priority);
+      formData.append("ProjectType", form.ProjectType);
+      formData.append("PMId", form.PM || "");
+      formData.append("BDEId", form.BDE || "");
+      formData.append("DepartmentId", form.Department || "");
+      formData.append("Timeline", form.Timeline || "");
+      formData.append("Description", form.Description || "");
+
+      // Append single SOW file
+      if (form.SOWFile) {
+        formData.append("SOWFile", form.SOWFile);
+      }
+
+      // Append multiple sample files
+      form.InputFiles.forEach((file) => {
+        if (file) formData.append("SampleFiles", file);
+      });
 
       const res = await fetch(
         `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects`,
         {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+          body: formData, // <-- multipart/form-data
         }
       );
 
@@ -180,6 +230,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       alert("Failed to save project");
     }
   };
+
 
   if (!isOpen) return null;
 
@@ -199,16 +250,22 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Project Code
               </label>
-              <input
-                type="text"
-                name="ProjectCode"
-                value={form.ProjectCode}
-                onChange={handleChange}
-                placeholder="Write Project Code"
-                className="w-full bg-gray-100 rounded p-2"
-                required
-              />
+              <div className="flex">
+                <span className="inline-flex items-center px-3 rounded-l bg-gray-200 text-gray-700">
+                  ACT
+                </span>
+                <input
+                  type="text"
+                  name="ProjectCode"
+                  value={form.ProjectCode} // only the user-typed part
+                  onChange={handleChange}
+                  placeholder="Write Project Code"
+                  className="flex-1 bg-gray-100 rounded-r p-2"
+                  required
+                />
+              </div>
             </div>
+
 
             {/* Project Name */}
             <div>
@@ -226,7 +283,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             </div>
 
             {/* SOW Links */}
-            <div>
+            {/* <div>
               <label className="block font-medium mb-1">SOW Links</label>
               {form.SOWLink.map((link, idx) => (
                 <div key={idx} className="flex gap-2 mb-2">
@@ -263,10 +320,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               >
                 + Add Link
               </button>
-            </div>
+            </div> */}
 
             {/* Sample Files Links */}
-            <div>
+            {/* <div>
               <label className="block font-medium mb-1">Sample Files</label>
               {form.InputLinks.map((link, idx) => (
                 <div key={idx} className="flex gap-2 mb-2">
@@ -302,6 +359,81 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               >
                 + Add Link
               </button>
+            </div> */}
+            {/* SOW Document (Single File) */}
+            <div>
+              <label className="block font-medium mb-1">SOW Document</label>
+              <input
+                type="file"
+                onChange={(e) =>
+                  setForm({ ...form, SOWFile: e.target.files[0] })
+                }
+                className="w-full bg-gray-100 rounded p-2"
+                required
+              />
+              {form.SOWFile && (
+                <p className="text-sm text-gray-600 mt-1">
+                  {form.SOWFile.name}
+                </p>
+              )}
+            </div>
+
+            {/* Sample File Attachments (Multiple) */}
+            <div>
+              <label className="block font-medium mb-1">Sample Files</label>
+              {form.InputFiles.map((file, idx) => (
+                <div key={idx} className="flex gap-2 mb-2 items-center">
+                  <input
+                    type="file"
+                    onChange={(e) => {
+                      const updated = [...form.InputFiles];
+                      updated[idx] = e.target.files[0];
+                      setForm({ ...form, InputFiles: updated });
+                    }}
+                    className="flex-1 bg-gray-100 rounded p-2"
+                  />
+                  {file && <span className="text-sm text-gray-600">{file.name}</span>}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = form.InputFiles.filter((_, i) => i !== idx);
+                      setForm({ ...form, InputFiles: updated });
+                    }}
+                    className="px-3 py-1 bg-red-500 text-white rounded"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setForm({ ...form, InputFiles: [...form.InputFiles, null] })
+                }
+                className="px-3 py-1 bg-blue-500 text-white rounded"
+              >
+                + Add Attachment
+              </button>
+            </div>
+
+
+            {/* Project Type */}
+            <div>
+              <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-1">
+                Project Type
+              </label>
+              <select
+                name="ProjectType"
+                value={form.ProjectType}
+                onChange={handleChange}
+                className="w-full bg-gray-100 rounded p-2"
+              >
+                <option value="" disabled>
+                  Select Project Type
+                </option>
+                <option value="POC">POC</option>
+                <option value="BAU">BAU</option>
+              </select>
             </div>
 
             {/* Frequency */}
@@ -339,26 +471,50 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
             </div>
 
+            {/* Priority */}
+
+            <div>
+              <label className="block font-medium mb-1">Project Priority</label>
+              <select
+                name="Priority"
+                value={form.Priority}
+                onChange={handleChange}
+                className="w-full bg-gray-100 rounded p-2"
+              >
+                <option value="" disabled>
+                  Select Priority
+                </option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+
             {/* Department */}
-            <Select
-              name="Department"
-              value={
-                form.Department
-                  ? {
-                    value: form.Department,
-                    label: departmentSelectOptions.find((opt) => opt.value === form.Department)?.label,
-                  }
-                  : null
-              }
-              onChange={(selected) =>
-                handleChange({ target: { name: "Department", value: selected?.value || "" } })
-              }
-              options={departmentSelectOptions}
-              placeholder="Select Department"
-              isClearable
-              isSearchable
-              className="w-full"
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Select Department
+              </label>
+              <Select
+                name="Department"
+                value={
+                  form.Department
+                    ? {
+                      value: form.Department,
+                      label: departmentSelectOptions.find((opt) => opt.value === form.Department)?.label,
+                    }
+                    : null
+                }
+                onChange={(selected) =>
+                  handleChange({ target: { name: "Department", value: selected?.value || "" } })
+                }
+                options={departmentSelectOptions}
+                placeholder="Select Department"
+                isClearable
+                isSearchable
+                className="w-full"
+              />
+            </div>
 
 
 
@@ -378,7 +534,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                   handleChange({ target: { name: "PM", value: selected?.value } })
                 }
                 options={pmOptions.map(u => ({ value: u._id, label: u.name }))}
-                placeholder={departmentOptions.length ? "Select PM" : "Select Department first"}
+                placeholder="Select Project Manager"
                 isClearable
                 isSearchable
                 className="w-full"
@@ -387,44 +543,22 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             </div>
 
             {/* Business Development Executive */}
-            <Select
-              name="BDE"
-              value={bdeOptions.find((opt) => opt.value === form.BDE) || null}
-              onChange={(selected) =>
-                handleChange({ target: { name: "BDE", value: selected?.value || "" } })
-              }
-              options={bdeOptions}
-              placeholder="Select BDE"
-              isClearable
-              isSearchable
-              className="w-full"
-            />
-
             <div>
-              <label className="block font-medium mb-1">Project Priority</label>
-              <select
-                name="Priority"
-                value={form.Priority}
-                onChange={handleChange}
-                className="w-full bg-gray-100 rounded p-2"
-              >
-                <option value="" disabled>
-                  Select Priority
-                </option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="bau-started" className="block mb-1">BAU started</label>
-              <input
-                id="bau-started"
-                type="datetime-local"
-                onChange={(e) => setForm({ ...form, BAUstarted: e.target.value })}
-                className="flex-1 bg-gray-100 rounded p-2"
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select BDE</label>
+              <Select
+                name="BDE"
+                value={bdeOptions.find((opt) => opt.value === form.BDE) || null}
+                onChange={(selected) =>
+                  handleChange({ target: { name: "BDE", value: selected?.value || "" } })
+                }
+                options={bdeOptions}
+                placeholder="Select BDE"
+                isClearable
+                isSearchable
+                className="w-full"
               />
             </div>
+
 
             <div>
               <label className="block font-medium mb-1">Description / Additional Info</label>
@@ -434,6 +568,16 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 placeholder="Enter description..."
                 className="w-full bg-gray-100 rounded p-2"
                 rows={3}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="bau-started" className="block mb-1">BAU started</label>
+              <input
+                id="bau-started"
+                type="datetime-local"
+                onChange={(e) => setForm({ ...form, BAUstarted: e.target.value })}
+                className="flex-1 bg-gray-100 rounded p-2"
               />
             </div>
           </div>

@@ -5,24 +5,81 @@ import Task from "../models/TaskData.js";
 import Notification from "../models/Notification.js";
 import FeedData from "../models/FeedData.js";
 
+
+// export const createProject = async (req, res) => {
+//   try {
+//     const {
+//       ProjectCode,
+//       ProjectName,
+//       SOWFile,
+//       SampleFiles,
+//       PMId,
+//       BDEId,
+//       DepartmentId: Department,
+//       Frequency,
+//       Priority,
+//       ProjectType,
+//       Timeline,      // new
+//       Description,   // new
+//     } = req.body;
+
+//     // you can get userId from auth middleware
+//     const createdBy = req.user?._id || null;
+
+//     const project = new Project({
+//       ProjectCode,
+//       ProjectName,
+//       SOWFile,
+//       SampleFiles,
+//       PMId,
+//       BDEId,
+//       Department,
+//       Frequency,
+//       ProjectType,
+//       Priority,
+//       Timeline: Timeline || "",   // store as array
+//       Description: Description || "", // default empty string
+//       CreatedBy: createdBy,
+//     });
+
+//     await project.save();
+//     res.status(201).json({ success: true, data: project });
+//   } catch (error) {
+//     console.error("Error creating project:", error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+
 export const createProject = async (req, res) => {
   try {
-    const {
+    let {
       ProjectCode,
       ProjectName,
-      SOWFile,
-      SampleFiles,
       PMId,
       BDEId,
       DepartmentId: Department,
       Frequency,
       Priority,
-      Timeline,      // new
-      Description,   // new
+      ProjectType,
+      Timeline,
+      Description,
     } = req.body;
 
-    // you can get userId from auth middleware
     const createdBy = req.user?._id || null;
+
+    ProjectCode = `ACT${ProjectCode}`;
+
+    // Extract file paths from multer
+const BACKEND_URL = process.env.BACKEND_URL || "http://172.28.148.130:5000";
+
+const SOWFile = req.files?.SOWFile
+  ? req.files.SOWFile.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
+  : [];
+
+const SampleFiles = req.files?.SampleFiles
+  ? req.files?.SampleFiles.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
+  : [];
 
     const project = new Project({
       ProjectCode,
@@ -33,14 +90,20 @@ export const createProject = async (req, res) => {
       BDEId,
       Department,
       Frequency,
+      ProjectType,
       Priority,
-      Timeline: Timeline || "",   // store as array
-      Description: Description || "", // default empty string
+      Timeline: Timeline || "",
+      Description: Description || "",
       CreatedBy: createdBy,
     });
 
     await project.save();
-    res.status(201).json({ success: true, data: project });
+
+    res.status(201).json({
+      success: true,
+      data: project,
+      message: "Project created with uploaded files",
+    });
   } catch (error) {
     console.error("Error creating project:", error);
     res.status(500).json({ success: false, message: error.message });

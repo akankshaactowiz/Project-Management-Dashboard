@@ -10,17 +10,28 @@ import { getProjects, createProject, transitionProject,
     getProjectById,
     updateProjectTeam
  } from "../controllers/projectsController.js";
+ import { upload } from "../middlewares/uploadFiles.js";
  import Project from "../models/Projects.js";
 import { getQAPassRate, getAvgTimeInQA, getReworkCount, getThroughput, getOverdue } from "../controllers/metricsController.js";
 const router = express.Router();
 
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
 // GET all projects
 router.get("/", getProjects);
 router.get("/assigned-to-qa", getAssignedToQAProjects);
 router.get("/:id", protect, getProjectById);
 
-router.post("/",protect, authorize("Project", "create"), createProject);
+// router.post("/",protect, authorize("Project", "create"), createProject);
+router.post(
+  "/",
+  protect,
+  authorize("Project", "create"),
+  upload.fields([
+    { name: "SOWFile", maxCount: 1 },
+    { name: "SampleFiles", maxCount: 5 },
+  ]),
+  createProject
+);
 
 router.put("/:id/update-team", protect, authorize("Project", "update"), updateProjectTeam);
 
