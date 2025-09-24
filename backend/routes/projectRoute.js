@@ -8,7 +8,8 @@ import { getProjects, createProject, transitionProject,
     AssignToQa,
     getAssignedToQAProjects,
     getProjectById,
-    updateProjectTeam
+    updateProjectTeam,
+    updateProject
  } from "../controllers/projectsController.js";
  import { upload } from "../middlewares/uploadFiles.js";
  import Project from "../models/Projects.js";
@@ -20,6 +21,16 @@ const router = express.Router();
 router.get("/", getProjects);
 router.get("/assigned-to-qa", getAssignedToQAProjects);
 router.get("/:id", protect, getProjectById);
+
+router.put(
+  "/updates/:id",
+  upload.fields([
+    { name: "SOWFile", maxCount: 5 },
+    { name: "SampleFiles", maxCount: 10 },
+  ]),
+  updateProject
+);
+
 
 // router.post("/",protect, authorize("Project", "create"), createProject);
 router.post(
