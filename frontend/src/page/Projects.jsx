@@ -12,12 +12,14 @@ import Model from "../components/CreateProject";
 import AssignQAModal from "../components/AssignToQa";
 import FeedModel from "../components/CreateFeed";
 import UpdateProjectModal from "../components/UpdateProjectModel";
+import { set } from "mongoose";
 
 // import QaActionsModal from "../components/QAActionModel";
 export default function Projects() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("All");
+  const [salesActiveStatusTabs, setSalesActiveStatusTabs] = useState("All");
   const [activeSalesTab, setActiveSalesTab] = useState("All");
   const [search, setSearch] = useState("");
   const [entries, setEntries] = useState(10);
@@ -70,9 +72,18 @@ export default function Projects() {
     "BAU",
     "POC",
     "R&D",
-    "Adhoc"
+    "Adhoc",
+    "Once-off"
   ];
 
+  const salesStatusTabs = [
+    "All",
+    "New",
+    "Under Development",
+    "On-Hold",
+    "Development Completed",
+    "Closed"
+  ];
 
   // const statusTabs = ["All", "New", "Under Development", "assigned_to_qa", "qa_passed", "qa_failed", "Completed"];
   const statusTabs = [
@@ -104,6 +115,7 @@ export default function Projects() {
 
         status: activeStatus !== "All" ? activeStatus : "",
         tab: user.department === "Sales" && activeSalesTab !== "All" ? activeSalesTab : "", // send tab only for Sales
+        statusTab: user.department === "Sales" && salesActiveStatusTabs !== "All" ? salesActiveStatusTabs : "",
         date_range: activeTab.toLowerCase().replace(" ", "_"),
         page: currentPage.toString(),
         pageSize: entries.toString(),
@@ -135,7 +147,7 @@ export default function Projects() {
   };
   useEffect(() => {
     fetchProjects();
-  }, [activeTab, activeSalesTab, activeStatus, entries, pageSize, currentPage, search]);
+  }, [activeTab, activeSalesTab, salesActiveStatusTabs,  activeStatus, entries, pageSize, currentPage, search]);
 
 
 
@@ -401,13 +413,14 @@ export default function Projects() {
 
         {/* Status Tabs */}
         {user?.department !== "Sales" && (
-
           <div className="border-b border-gray-200 mb-4 overflow-x-auto whitespace-nowrap">
             {statusTabs.map((status) => (
               <button
-                key={status.key}
+                key={status.key} // ✅ unique key
                 onClick={() => setActiveStatus(status.key)}
-                className={`inline-block px-4 py-2 text-md font-medium transition-colors duration-200 ${activeStatus === status.key ? "border-b-2 border-purple-800 text-purple-800" : "text-gray-500"
+                className={`inline-block px-4 py-2 text-md font-medium transition-colors duration-200 ${activeStatus === status.key
+                  ? "border-b-2 border-purple-800 text-purple-800"
+                  : "text-gray-500"
                   }`}
               >
                 {status.label}
@@ -415,6 +428,27 @@ export default function Projects() {
             ))}
           </div>
         )}
+
+        {user?.department === "Sales" && (
+          <div className="border-b border-gray-200 mb-4 overflow-x-auto whitespace-nowrap">
+            {salesStatusTabs.map((salesStatusTab) => (
+              <button
+                key={salesStatusTab} // ✅ use string as key
+                onClick={() => setSalesActiveStatusTabs(salesStatusTab)}
+                className={`inline-block px-4 py-2 text-md font-medium transition-colors duration-200 ${salesActiveStatusTabs === salesStatusTab
+                    ? "border-b-2 border-purple-800 text-purple-800"
+                    : "text-gray-500"
+                  }`}
+              >
+                {salesStatusTab}
+              </button>
+            ))}
+
+          </div>
+        )}
+
+
+
 
 
 
@@ -511,9 +545,10 @@ export default function Projects() {
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Type</th>
                   {/* <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th> */}
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Material</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Attachments</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Status</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Manager</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">BDE</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created By</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created Date</th>
@@ -557,6 +592,7 @@ export default function Projects() {
                       </td>
 
                       <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
+                      <td className="px-3 py-2">{row.Status ?? "-"}</td>
                       <td className="px-3 py-2">{row.PMId?.name ?? "-"}</td>
                       <td className="px-3 py-2">{row.BDEId?.name ?? "-"}</td>
                       <td className="px-3 py-2">{row.CreatedBy?.name ?? "-"}</td>
@@ -625,6 +661,7 @@ export default function Projects() {
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th> */}
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Material</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Status</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">BDE</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created By</th>
@@ -669,6 +706,7 @@ export default function Projects() {
                       </td>
 
                       <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
+                      <td className="px-3 py-2">{row.Status ?? "-"}</td>
                       <td className="px-3 py-2">{row.PMId?.name ?? "-"}</td>
                       <td className="px-3 py-2">{row.BDEId?.name ?? "-"}</td>
                       <td className="px-3 py-2">{row.CreatedBy?.name ?? "-"}</td>
@@ -732,7 +770,7 @@ export default function Projects() {
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
-                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Type</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Type</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Material</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
@@ -767,7 +805,7 @@ export default function Projects() {
                       >
                         {row.ProjectName ?? "-"}
                       </td>
-                     <td className="px-3 py-2">{row.ProjectType ?? "-"}</td>
+                      <td className="px-3 py-2">{row.ProjectType ?? "-"}</td>
                       <td className="px-3 py-2">
                         <button
                           onClick={() => navigate(`/project/${row._id}/files`)}

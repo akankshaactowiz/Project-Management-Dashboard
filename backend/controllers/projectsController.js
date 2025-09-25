@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Task from "../models/TaskData.js";
 import Notification from "../models/Notification.js";
 import FeedData from "../models/FeedData.js";
+import mongoose from "mongoose";
 
 
 // export const createProject = async (req, res) => {
@@ -601,14 +602,17 @@ export const getProjects = async (req, res) => {
     const role = req.user.roleId?.name; // e.g., "Superadmin", "Sales Head", "Sales Manager", "BDE"
     const department = req.user.departmentId?.department;
     // --- Sales Tab Filter ---
-    const salesTabs = ["All", "BAU", "POC", "R&D", "Adhoc"];
+    const salesTabs = ["All", "BAU", "POC", "R&D", "Adhoc", "Once-off"];
     const { tab } = req.query;
     if (department === "Sales" && tab && tab !== "All" && salesTabs.includes(tab)) {
       filter.ProjectType = tab;
     }
 
-
-
+    const salesStatusTab = ["All", "New", "Under Development", "Closed", "On-Hold", "Development Completed"];
+    const { statusTab } = req.query;
+    if (department === "Sales" && statusTab && statusTab !== "All" && salesStatusTab.includes(statusTab)) {
+      filter.Status = statusTab;
+    }
     // Role-based filtering
 
 
@@ -849,7 +853,6 @@ export const getProjects = async (req, res) => {
 //   }
 // };
 
-import mongoose from "mongoose";
 
 export const getProjectById = async (req, res) => {
   const { id } = req.params;
