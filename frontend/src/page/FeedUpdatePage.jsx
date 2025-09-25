@@ -9,7 +9,7 @@ function FeedUpdate() {
   const [feed, setFeed] = useState(null);
   const [loading, setLoading] = useState(true);
   // const [activeTab, setActiveTab] = useState("Feed Details");
-  const [activeTab, setActiveTab] = useState("Frequency");
+  const [activeTab, setActiveTab] = useState("Feed Details");
 
   // Fetch feed details by id
   useEffect(() => {
@@ -85,7 +85,7 @@ function FeedUpdate() {
   };
 
   const tabs = [
-    // "Feed Details",
+    "Feed Details",
     "Frequency",
     // "Databases",
     // "Systems",
@@ -99,7 +99,7 @@ function FeedUpdate() {
   return (
     <>
       <div className="flex bg-gray-50 items-center justify-between px-4">
-        <Breadcrumb />
+        {/* <Breadcrumb /> */}
         {/* <button
             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded cursor-pointer"
             onClick={() => navigate(`/feed/update/${id}`)}
@@ -116,7 +116,7 @@ function FeedUpdate() {
               setActiveTab(tabs)
 
             }
-            className={`inline-block px-4 py-2 text-xs font-medium transition-colors duration-200 ${activeTab === tabs
+            className={`inline-block px-4 py-2 text-md font-medium transition-colors duration-200 ${activeTab === tabs
               ? "border-b-2 border-purple-800 text-purple-800"
               : "text-gray-500"
               }`}
@@ -126,12 +126,103 @@ function FeedUpdate() {
         ))}
       </div>
       <div className="p-6 mx-auto">
+
+        {activeTab === "Feed Details" && (
+
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-2 gap-6 bg-white rounded-xl p-6"
+          >
+          <div>
+              <label className="block font-medium mb-1">Platform</label>
+              <input
+                type="text"
+                name="Platform"
+                value={feed.Platform || ""}
+                onChange={handleChange}
+                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+              />
+            </div>
+
+           
+            <div>
+              <label className="block font-medium mb-1">Developers</label>
+              <input
+                type="text"
+                name="Developers"
+                value={feed.Developer || ""}
+                onChange={handleChange}
+                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+              />
+            </div>
+
+            
+            <div>
+              <label className="block font-medium mb-1">QA </label>
+              <input
+                type="text"
+                name="QA"
+                value={feed.QA || ""}
+                onChange={handleChange}
+                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-1">Manage</label>
+              <input
+                type="text"
+                name="Manage By"
+                value={feed['Manage By'] || ""}
+                onChange={handleChange}
+                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-1">Feed BAU</label>
+              <input
+                type="text"
+                name="BAU"
+                value={feed.BAU || ""}
+                onChange={handleChange}
+                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+              />
+            </div>
+
+           
+
+
+        
+            <div>
+              <label className="block font-medium mb-1">Feed Status</label>
+              <input
+                type="text"
+                name="Status"
+                value={feed.Status || ""}
+                onChange={handleChange}
+                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
+              />
+            </div>
+
+        
+            <div className="col-span-2 flex justify-end">
+              <button
+                type="submit"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+              >
+                Update Feed
+              </button>
+
+            </div>
+          </form>
+        )}
         {activeTab === "Frequency" && (
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 gap-6 bg-white rounded-xl p-6"
           >
-            <label className="block font-medium mb-2">Frequency *</label>
+            <label className="block font-medium mb-2">Frequency</label>
             <div className="flex gap-4 mb-4">
               {["Daily", "Weekly", "Monthly"].map((freq) => (
                 <label key={freq} className="flex items-center gap-2">
@@ -230,122 +321,7 @@ function FeedUpdate() {
             </div>
           </form>
         )}
-        {/* {activeTab === "Feed Details" && (
-
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-2 gap-6 bg-white rounded-xl p-6"
-          >
-      
-            <div>
-              <label className="block font-medium mb-1">Project *</label>
-              <input
-                type="text"
-                name="ProjectName"
-                value={feed["ProjectName"] || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-
-            </div>
-
-       
-            <div>
-              <label className="block font-medium mb-1">Feed Name *</label>
-              <input
-                type="text"
-                name={Object.keys(feed).find(k => k.replace(/\s/g, "").toLowerCase() === "feedname")}
-                value={feed[Object.keys(feed).find(k => k.replace(/\s/g, "").toLowerCase() === "feedname")] || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-
-            </div>
-
-            <div>
-              <label className="block font-medium mb-1">Platform *</label>
-              <input
-                type="text"
-                name="Platform"
-                value={feed.Platform || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-            </div>
-
-           
-            <div>
-              <label className="block font-medium mb-1">Developers *</label>
-              <input
-                type="text"
-                name="Developers"
-                value={feed.Developer || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-            </div>
-
-            
-            <div>
-              <label className="block font-medium mb-1">QA *</label>
-              <input
-                type="text"
-                name="QA"
-                value={feed.QA || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-1">Manage</label>
-              <input
-                type="text"
-                name="Manage By"
-                value={feed['Manage By'] || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block font-medium mb-1">Feed BAU</label>
-              <input
-                type="text"
-                name="BAU"
-                value={feed.BAU || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-            </div>
-
-           
-
-
         
-            <div>
-              <label className="block font-medium mb-1">Feed Status</label>
-              <input
-                type="text"
-                name="Status"
-                value={feed.Status || ""}
-                onChange={handleChange}
-                className="w-full bg-gray-200 rounded-md px-3 py-2 focus:outline-none"
-              />
-            </div>
-
-        
-            <div className="col-span-2 flex justify-end">
-              <button
-                type="submit"
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
-              >
-                Update Feed
-              </button>
-
-            </div>
-          </form>
-        )} */}
 
 
       </div>

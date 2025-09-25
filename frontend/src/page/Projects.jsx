@@ -18,6 +18,7 @@ export default function Projects() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("All");
+  const [activeSalesTab, setActiveSalesTab] = useState("All");
   const [search, setSearch] = useState("");
   const [entries, setEntries] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,15 +65,13 @@ export default function Projects() {
   ];
 
   // sales tab filters
-  // const salesFilters = [
-  //   "All",
-  //   "On-Time Deliveries",
-  //   "Delayed Projects",
-  //   "Completed",
-  //   "Handover This Week",
-  //   "Handover Last Week",
-  //   "Overdue Handover",
-  // ];
+  const salesTabs = [
+    "All",
+    "BAU",
+    "POC",
+    "R&D",
+    "Adhoc"
+  ];
 
 
   // const statusTabs = ["All", "New", "Under Development", "assigned_to_qa", "qa_passed", "qa_failed", "Completed"];
@@ -102,7 +101,9 @@ export default function Projects() {
     try {
       setLoading(true);
       const params = new URLSearchParams({
+
         status: activeStatus !== "All" ? activeStatus : "",
+        tab: user.department === "Sales" && activeSalesTab !== "All" ? activeSalesTab : "", // send tab only for Sales
         date_range: activeTab.toLowerCase().replace(" ", "_"),
         page: currentPage.toString(),
         pageSize: entries.toString(),
@@ -134,7 +135,7 @@ export default function Projects() {
   };
   useEffect(() => {
     fetchProjects();
-  }, [activeTab, activeStatus, entries, pageSize, currentPage, search]);
+  }, [activeTab, activeSalesTab, activeStatus, entries, pageSize, currentPage, search]);
 
 
 
@@ -279,7 +280,6 @@ export default function Projects() {
     ],
     Manager: ["Project Name",
       "Feed Name",
-      "Feed ID",
       "Frequency",
       "Platform",
       "Status",
@@ -301,7 +301,8 @@ export default function Projects() {
       "DB Type",
       "Created Date",
       "Project Created By",
-      "Actions"],
+      // "Actions"
+    ],
     "Team Lead": ["Project Name",
       "Feed Name",
       "Feed ID",
@@ -356,6 +357,19 @@ export default function Projects() {
                 {tab}
               </button>
             ))}
+          {user.department === "Sales"
+            && salesTabs.map((salesTab) => (
+              <button
+                key={salesTab}
+                onClick={() => setActiveSalesTab(salesTab)}
+                className={`px-3 py-1 rounded font-medium ${activeSalesTab === salesTab
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-300 text-gray-700"
+                  }`}
+              >
+                {salesTab}
+              </button>
+            ))}
 
           {canCreateProject && (
             <button
@@ -393,7 +407,7 @@ export default function Projects() {
               <button
                 key={status.key}
                 onClick={() => setActiveStatus(status.key)}
-                className={`inline-block px-4 py-2 text-xs font-medium transition-colors duration-200 ${activeStatus === status.key ? "border-b-2 border-purple-800 text-purple-800" : "text-gray-500"
+                className={`inline-block px-4 py-2 text-md font-medium transition-colors duration-200 ${activeStatus === status.key ? "border-b-2 border-purple-800 text-purple-800" : "text-gray-500"
                   }`}
               >
                 {status.label}
@@ -401,6 +415,9 @@ export default function Projects() {
             ))}
           </div>
         )}
+
+
+
 
         {/* Controls */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-3">
@@ -491,8 +508,10 @@ export default function Projects() {
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Type</th>
+                  {/* <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th> */}
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Material</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">BDE</th>
@@ -527,91 +546,14 @@ export default function Projects() {
                       >
                         {row.ProjectName ?? "-"}
                       </td>
-                      <td className="px-3 py-2 relative">
-                        {row.SOWFile && row.SOWFile.length > 0 ? (
-                          <div className="inline-block relative">
-                            {/* Dropdown button */}
-                            <button
-                              onClick={() =>
-                                setOpenDropdown(prev =>
-                                  prev?.rowIdx === idx && prev?.col === "SOWFile" ? null : { rowIdx: idx, col: "SOWFile" }
-                                )
-                              }
-                              className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
-                            >
-                              {row.SOWFile.length === 1 ? "View File" : `${row.SOWFile.length} Versions`}
-                            </button>
-
-                            {/* Dropdown menu */}
-                            {openDropdown?.rowIdx === idx && openDropdown?.col === "SOWFile" && (
-                              <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
-                                <ul className="p-0 m-0 list-none">
-                                  {row.SOWFile.map((file, fileIdx) => (
-                                    <li key={fileIdx} className="mb-1 last:mb-0">
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
-                                        className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
-                                        title={file}
-                                      >
-                                        Version {fileIdx + 1}
-                                        {/* : {file.split("/").pop()} */}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-
-                      <td className="px-3 py-2 relative">
-                        {row.SampleFiles && row.SampleFiles.length > 0 ? (
-                          <div className="inline-block relative">
-                            {/* Dropdown button */}
-                            <button
-                              onClick={() =>
-                                setOpenDropdown(prev =>
-                                  prev?.rowIdx === idx && prev?.col === "SampleFiles" ? null : { rowIdx: idx, col: "SampleFiles" }
-                                )
-                              }
-                              className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
-                            >
-                              {/* {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Versions`} */}
-                              View Files
-                            </button>
-
-                            {/* Dropdown menu */}
-                            {openDropdown?.rowIdx === idx && openDropdown?.col === "SampleFiles" && (
-                              <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
-                                <ul className="p-0 m-0 list-none">
-                                  {row.SampleFiles.map((file, fileIdx) => (
-                                    <li key={fileIdx} className="mb-1 last:mb-0">
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
-                                        className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
-                                        title={file}
-                                      >
-                                        {/* Version {fileIdx + 1}: {file.split("/").pop()} */}
-                                        View File
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
+                      <td className="px-3 py-2">{row.ProjectType ?? "-"}</td>
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={() => navigate(`/project/${row._id}/files`)}
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Files
+                        </button>
                       </td>
 
                       <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
@@ -630,19 +572,15 @@ export default function Projects() {
                         </button>
                       </td>
 
-                      <UpdateProjectModal
-                        isOpen={isUpdateModalOpen}
-                        onClose={() => setIsUpdateModalOpen(false)}
-                        project={selectedProject}
-                        onUpdate={handleUpdateProject}
-                      />
+
+
 
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan={columns.length}
+                      colSpan={12}
                       className="text-center p-8 text-gray-500"
                     >
                       <div className="flex flex-col items-center justify-center gap-3">
@@ -663,6 +601,14 @@ export default function Projects() {
                 )}
               </tbody>
             </table>
+
+            {/* Modal: render only once */}
+            <UpdateProjectModal
+              isOpen={isUpdateModalOpen}
+              onClose={() => setIsUpdateModalOpen(false)}
+              project={selectedProject}
+              onUpdate={handleUpdateProject}
+            />
           </div>
         )}
 
@@ -674,8 +620,10 @@ export default function Projects() {
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Type</th>
+                  {/* <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th> */}
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Material</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">BDE</th>
@@ -710,162 +658,14 @@ export default function Projects() {
                       >
                         {row.ProjectName ?? "-"}
                       </td>
-                      {/* <td className="px-3 py-2" >
-                        <a href={row.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
-                          {row.SOWFile ?? "-"}
-                        </a>
-                      </td> */}
-                      {/* <td className="px-3 py-2"> 
-                      <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
-                        {row.SampleFiles ?? "-"}
-                      </a>
-                    </td> */}
-                      {/* <td className="px-3 py-2 relative">
-                        {row.SampleFiles && row.SampleFiles.length > 0 ? (
-                          <div
-                            style={{ display: "inline-block", position: "relative" }}
-                            onMouseEnter={() => setOpenRow(idx)}
-                            onMouseLeave={() => setOpenRow(null)}
-                          >
-                            <span
-                              style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
-                            >
-                              {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Files`}
-                            </span>
-
-                            {openRow === idx && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: "100%",
-                                  left: 0,
-                                  marginTop: "0.25rem",
-                                  minWidth: "180px",
-                                  maxHeight: "200px",
-                                  overflowY: "auto",
-                                  backgroundColor: "#fff",
-                                  border: "1px solid #e5e7eb",
-                                  borderRadius: "0.5rem",
-                                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                                  padding: "0.5rem",
-                                  zIndex: 50,
-                                }}
-                              >
-                                <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
-                                  {row.SampleFiles.map((file, fileIdx) => (
-                                    <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                          display: "block",
-                                          color: "#2563eb",
-                                          textDecoration: "none",
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                        }}
-                                      >
-                                        
-                                        {file}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span style={{ color: "#9ca3af" }}>-</span>
-                        )}
-                      </td> */}
-
-                      <td className="px-3 py-2 relative">
-                        {row.SOWFile && row.SOWFile.length > 0 ? (
-                          <div className="inline-block relative">
-                            {/* Dropdown button */}
-                            <button
-                              onClick={() =>
-                                setOpenDropdown(prev =>
-                                  prev?.rowIdx === idx && prev?.col === "SOWFile" ? null : { rowIdx: idx, col: "SOWFile" }
-                                )
-                              }
-                              className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
-                            >
-                              {row.SOWFile.length === 1 ? "View File" : `${row.SOWFile.length} Versions`}
-                            </button>
-
-                            {/* Dropdown menu */}
-                            {openDropdown?.rowIdx === idx && openDropdown?.col === "SOWFile" && (
-                              <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
-                                <ul className="p-0 m-0 list-none">
-                                  {row.SOWFile.map((file, fileIdx) => (
-                                    <li key={fileIdx} className="mb-1 last:mb-0">
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
-                                        className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
-                                        title={file}
-                                      >
-                                        Version {fileIdx + 1}
-                                        {/* : {file.split("/").pop()} */}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-
-                      <td className="px-3 py-2 relative">
-                        {row.SampleFiles && row.SampleFiles.length > 0 ? (
-                          <div className="inline-block relative">
-                            {/* Dropdown button */}
-                            <button
-                              onClick={() =>
-                                setOpenDropdown(prev =>
-                                  prev?.rowIdx === idx && prev?.col === "SampleFiles" ? null : { rowIdx: idx, col: "SampleFiles" }
-                                )
-                              }
-                              className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
-                            >
-                              {/* {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Versions`} */}
-                              View Files
-                            </button>
-
-                            {/* Dropdown menu */}
-                            {openDropdown?.rowIdx === idx && openDropdown?.col === "SampleFiles" && (
-                              <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
-                                <ul className="p-0 m-0 list-none">
-                                  {row.SampleFiles.map((file, fileIdx) => (
-                                    <li key={fileIdx} className="mb-1 last:mb-0">
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
-                                        className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
-                                        title={file}
-                                      >
-                                        {/* Version {fileIdx + 1}: {file.split("/").pop()} */}
-                                        View File
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
+                      <td className="px-3 py-2">{row.ProjectType ?? "-"}</td>
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={() => navigate(`/project/${row._id}/files`)}
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Files
+                        </button>
                       </td>
 
                       <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
@@ -884,19 +684,15 @@ export default function Projects() {
                         </button>
                       </td>
 
-                      <UpdateProjectModal
-                        isOpen={isUpdateModalOpen}
-                        onClose={() => setIsUpdateModalOpen(false)}
-                        project={selectedProject}
-                        onUpdate={handleUpdateProject}
-                      />
+
+
 
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
-                      colSpan={columns.length}
+                      colSpan={12}
                       className="text-center p-8 text-gray-500"
                     >
                       <div className="flex flex-col items-center justify-center gap-3">
@@ -917,6 +713,14 @@ export default function Projects() {
                 )}
               </tbody>
             </table>
+
+            {/* Modal: render only once */}
+            <UpdateProjectModal
+              isOpen={isUpdateModalOpen}
+              onClose={() => setIsUpdateModalOpen(false)}
+              project={selectedProject}
+              onUpdate={handleUpdateProject}
+            />
           </div>
         )}
 
@@ -928,8 +732,8 @@ export default function Projects() {
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">No</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Code</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Name</th>
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">SOW File</th>
-                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Sample Files</th>
+                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Project Type</th>
+                  <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Material</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Frequency</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">PM</th>
                   <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">Created By</th>
@@ -963,86 +767,14 @@ export default function Projects() {
                       >
                         {row.ProjectName ?? "-"}
                       </td>
+                     <td className="px-3 py-2">{row.ProjectType ?? "-"}</td>
                       <td className="px-3 py-2">
-                        {row.SOWFile ? (
-                          <a
-                            href={row.SOWFile} // full URL still here for downloading
-                            className="text-blue-600 hover:text-blue-800"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
-                          >
-                            View Files
-                          </a>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-
-                      {/* <td className="px-3 py-2"> 
-                      <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
-                        {row.SampleFiles ?? "-"}
-                      </a>
-                    </td> */}
-                      <td className="px-3 py-2 relative">
-                        {row.SampleFiles && row.SampleFiles.length > 0 ? (
-                          <div
-                            style={{ display: "inline-block", position: "relative" }}
-                            onMouseEnter={() => setOpenRow(idx)}
-                            onMouseLeave={() => setOpenRow(null)}
-                          >
-                            <span
-                              style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
-                            >
-                              {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Files`}
-                            </span>
-
-                            {openRow === idx && (
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: "100%",
-                                  left: 0,
-                                  marginTop: "0.25rem",
-                                  minWidth: "180px",
-                                  maxHeight: "200px",
-                                  overflowY: "auto",
-                                  backgroundColor: "#fff",
-                                  border: "1px solid #e5e7eb",
-                                  borderRadius: "0.5rem",
-                                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                                  padding: "0.5rem",
-                                  zIndex: 50,
-                                }}
-                              >
-                                <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
-                                  {row.SampleFiles.map((file, fileIdx) => (
-                                    <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                          display: "block",
-                                          color: "#2563eb",
-                                          textDecoration: "none",
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                        }}
-                                      >
-                                        {/* Link {fileIdx + 1} */}
-                                        {file}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span style={{ color: "#9ca3af" }}>-</span>
-                        )}
+                        <button
+                          onClick={() => navigate(`/project/${row._id}/files`)}
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Files
+                        </button>
                       </td>
 
                       <td className="px-3 py-2">{row.Frequency ?? "-"}</td>
@@ -1105,38 +837,41 @@ export default function Projects() {
                   </tr>
                 ) : data.length > 0 ? (
                   data.map((project, idx) =>
-                    project.Feeds && project.Feeds.length > 0 ? (
-                      project.Feeds.map((feed, feedIdx) => (
-                        <tr key={`${project._id}-${feed._id}`} className={feedIdx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    project.Feeds && project.Feeds.length > 0
+                      ? project.Feeds.map((feed, feedIdx) => (
+                        <tr
+                          key={`${project._id}-${feed._id}`}
+                          className={feedIdx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                        >
                           {/* No */}
                           <td className="px-3 py-2">{feedCounter++}</td>
 
-                          {/* Project Name */}
-                          <td className="px-3 py-2">
-                            {project.ProjectCode && project.ProjectName
-                              ? `[${project.ProjectCode}] ${project.ProjectName}`
+                          {/* Project Code + Name */}
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            {project.ProjectCode || project.ProjectName
+                              ? `[${project.ProjectCode ?? "-"}] ${project.ProjectName ?? "-"}`
                               : "-"}
                           </td>
 
                           {/* Feed Name */}
                           <td
-                            className="px-3 py-2 text-blue-600 cursor-pointer hover:underline"
-                            onClick={() => (window.location.href = `/feed/${feed._id}`)}
+                            className="px-3 py-2 text-blue-600 cursor-pointer hover:underline whitespace-nowrap"
+                            onClick={() => (window.location.href = `/project/feed/${feed._id}`)}
                           >
-                            {feed.FeedName ?? "-"}
+
+                            {`${feedIdx + 1 ?? "-"} | ${project.ProjectType ?? "-"} | ${feed.DomainName ?? "-"} | ${feed.ApplicationType ?? "-"} | ${feed.CountryName ?? "-"} | ${project.ProjectName ?? "-"}`}
                           </td>
 
-
                           {/* Feed ID */}
-                          <td className="px-3 py-2">{feed.FeedId ?? "-"}</td>
+                          {/* <td className="px-3 py-2">{feed.FeedId ?? "-"}</td> */}
 
                           {/* Frequency */}
                           <td className="px-3 py-2">{project.Frequency ?? "-"}</td>
 
-                          {/* Platform / Domain | Application | Country */}
-                          <td className="px-3 py-2">
+                          {/* Platform */}
+                          <td className="px-3 py-2 whitespace-nowrap">
                             {feed.DomainName && feed.ApplicationType && feed.CountryName
-                              ? `${feed.DomainName}|${feed.ApplicationType}|${feed.CountryName}`
+                              ? `${feed.DomainName} | ${feed.ApplicationType} | ${feed.CountryName}`
                               : "-"}
                           </td>
 
@@ -1162,7 +897,7 @@ export default function Projects() {
                           <td className="px-3 py-2">
                             {feed.DeveloperIds?.length
                               ? feed.DeveloperIds
-                                .map((dev) => (dev && dev.name ? dev.name : dev._id || dev))
+                                .map((dev) => (dev?.name ? dev.name : dev._id ?? dev))
                                 .join(", ")
                               : "-"}
                           </td>
@@ -1173,167 +908,98 @@ export default function Projects() {
                           {/* BAU Person */}
                           <td className="px-3 py-2">{feed.BAUPersonId ?? "-"}</td>
 
-                          {/* SOW and Sample files */}
-
-                      <td className="px-3 py-2">
-                        {project.SOWFile && project.SOWFile.length > 0 ? (
-                          <div className="inline-block relative">
-                            {/* Dropdown button */}
-                            <button
-                              onClick={() =>
-                                setOpenDropdown(prev =>
-                                  prev?.rowIdx === idx && prev?.col === "SOWFile" ? null : { rowIdx: idx, col: "SOWFile" }
-                                )
-                              }
-                              className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
-                            >
-                              {project.SOWFile.length === 1 ? "View File" : `${project.SOWFile.length} Versions`}
-                            </button>
-
-                            {/* Dropdown menu */}
-                            {openDropdown?.rowIdx === idx && openDropdown?.col === "SOWFile" && (
-                              <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
-                                <ul className="p-0 m-0 list-none">
-                                  {project.SOWFile.map((file, fileIdx) => (
-                                    <li key={fileIdx} className="mb-1 last:mb-0">
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
-                                        className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
-                                        title={file}
-                                      >
-                                        Version {fileIdx + 1}
-                                        {/* : {file.split("/").pop()} */}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-
-                      <td className="px-3 py-2 relative">
-                        {project.SampleFiles && project.SampleFiles.length > 0 ? (
-                          <div className="inline-block relative">
-                            {/* Dropdown button */}
-                            <button
-                              onClick={() =>
-                                setOpenDropdown(prev =>
-                                  prev?.rowIdx === idx && prev?.col === "SampleFiles" ? null : { rowIdx: idx, col: "SampleFiles" }
-                                )
-                              }
-                              className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
-                            >
-                              {/* {row.SampleFiles.length === 1 ? "View File" : `${row.SampleFiles.length} Versions`} */}
-                              View Files
-                            </button>
-
-                            {/* Dropdown menu */}
-                            {openDropdown?.rowIdx === idx && openDropdown?.col === "SampleFiles" && (
-                              <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
-                                <ul className="p-0 m-0 list-none">
-                                  {project.SampleFiles.map((file, fileIdx) => (
-                                    <li key={fileIdx} className="mb-1 last:mb-0">
-                                      <a
-                                        href={file}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
-                                        className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
-                                        title={file}
-                                      >
-                                        {/* Version {fileIdx + 1}: {file.split("/").pop()} */}
-                                        View File
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-
-                          {/* <td className="px-3 py-2" >
-                            <a href={feed.SOWFile} className="text-blue-600 hover:text-blue-800" target="_blank">
-                              {project.SOWFile ?? "-"}
-                            </a>
-                          </td> */}
-                          {/* <td className="px-3 py-2"> 
-                      <a href={row.SampleFiles} className="text-blue-600 hover:text-blue-800" target="_blank">
-                        {row.SampleFiles ?? "-"}
-                      </a>
-                    </td> */}
-                          {/* <td className="px-3 py-2 relative">
-                            {project.SampleFiles && project.SampleFiles.length > 0 ? (
-                              <div
-                                style={{ display: "inline-block", position: "relative" }}
-                                onMouseEnter={() => setOpenRow(idx)}
-                                onMouseLeave={() => setOpenRow(null)}
-                              >
-                                <span
-                                  style={{ cursor: "pointer", color: "#2563eb", textDecoration: "underline" }}
+                          {/* SOW Files */}
+                          <td className="px-3 py-2">
+                            {project.SOWFile && project.SOWFile.length > 0 ? (
+                              <div className="inline-block relative">
+                                <button
+                                  // onClick={() =>
+                                  //   setOpenDropdown(prev =>
+                                  //     prev?.rowIdx === idx && prev?.col === "SOWFile" ? null : { rowIdx: idx, col: "SOWFile" }
+                                  //   )
+                                  // }
+                                  onClick={() =>
+                                    setOpenDropdown(prev =>
+                                      prev?.rowId === project._id && prev?.feedId === feed?._id && prev?.col === "SOWFile"
+                                        ? null
+                                        : { rowId: project._id, feedId: feed?._id, col: "SOWFile" }
+                                    )
+                                  }
+                                  className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
                                 >
-                                  {project.SampleFiles.length === 1 ? "View File" : `${project.SampleFiles.length} Files`}
-                                </span>
-
-                                {openRow === idx && (
-                                  <div
-                                    style={{
-                                      position: "absolute",
-                                      top: "100%",
-                                      left: 0,
-                                      marginTop: "0.25rem",
-                                      minWidth: "180px",
-                                      maxHeight: "200px",
-                                      overflowY: "auto",
-                                      backgroundColor: "#fff",
-                                      border: "1px solid #e5e7eb",
-                                      borderRadius: "0.5rem",
-                                      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                                      padding: "0.5rem",
-                                      zIndex: 50,
-                                    }}
-                                  >
-                                    <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
-                                      {project.SampleFiles.map((file, fileIdx) => (
-                                        <li key={fileIdx} style={{ marginBottom: "0.25rem" }}>
-                                          <a
-                                            href={file}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{
-                                              display: "block",
-                                              color: "#2563eb",
-                                              textDecoration: "none",
-                                              whiteSpace: "nowrap",
-                                              overflow: "hidden",
-                                              textOverflow: "ellipsis",
-                                            }}
-                                          >
-                                            
-                                            {file}
-                                          </a>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
+                                  {project.SOWFile.length === 1 ? "View File" : `${project.SOWFile.length} Versions`}
+                                </button>
+                                {openDropdown?.rowId === project._id &&
+                                  openDropdown?.feedId === feed?._id &&
+                                  openDropdown?.col === "SOWFile" && (
+                                    <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
+                                      <ul className="p-0 m-0 list-none">
+                                        {project.SOWFile.map((file, fileIdx) => (
+                                          <li key={fileIdx} className="mb-1 last:mb-0">
+                                            <a
+                                              href={file}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              download
+                                              className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
+                                              title={file}
+                                            >
+                                              Version {fileIdx + 1}
+                                            </a>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
                               </div>
                             ) : (
-                              <span style={{ color: "#9ca3af" }}>-</span>
+                              <span className="text-gray-400">-</span>
                             )}
-                          </td> */}
+                          </td>
 
-
+                          {/* Sample Files */}
+                          <td className="px-3 py-2 relative">
+                            {project.SampleFiles && project.SampleFiles.length > 0 ? (
+                              <div className="inline-block relative">
+                                <button
+                                  onClick={() =>
+                                    setOpenDropdown(prev =>
+                                      prev?.rowId === project._id && prev?.feedId === feed?._id && prev?.col === "SampleFiles"
+                                        ? null
+                                        : { rowId: project._id, feedId: feed?._id, col: "SampleFiles" }
+                                    )
+                                  }
+                                  className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
+                                >
+                                  View Files
+                                </button>
+                                {openDropdown?.rowId === project._id &&
+                                  openDropdown?.feedId === feed?._id &&
+                                  openDropdown?.col === "SampleFiles" && (
+                                    <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
+                                      <ul className="p-0 m-0 list-none">
+                                        {project.SampleFiles.map((file, fileIdx) => (
+                                          <li key={fileIdx} className="mb-1 last:mb-0">
+                                            <a
+                                              href={file}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              download
+                                              className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
+                                              title={file}
+                                            >
+                                              View File
+                                            </a>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
 
                           {/* Framework Type */}
                           <td className="px-3 py-2">{feed.FrameworkType ?? "-"}</td>
@@ -1354,34 +1020,136 @@ export default function Projects() {
                           <td className="px-3 py-2">{project.DBType ?? "-"}</td>
 
                           {/* Created Date */}
-                          <td className="px-3 py-2">
-                            {project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : "-"}
-                          </td>
+                          <td className="px-3 py-2">{project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : "-"}</td>
 
-                          {/* Created By */}
+                          {/* Project Created By */}
                           <td className="px-3 py-2">{project.CreatedBy?.name ?? "-"}</td>
 
                           {/* Actions */}
-                          <td className="px-3 py-2">
+                          {/* <td className="px-3 py-2">
                             <button>
-                              <span className="text-blue-600 cursor-pointer hover:underline">
-                                Assign Feed to QA
-                              </span>
+                              <span className="text-blue-600 cursor-pointer hover:underline">Assign Feed to QA</span>
                             </button>
-                          </td>
+                          </td> */}
                         </tr>
                       ))
-                    ) : (
-                      // No feeds
-                      <tr key={project._id}>
-                        <td className="px-3 py-2">{idx + 1}</td>
-                        <td className="px-3 py-2">{project.ProjectName ?? "-"}</td>
-                        <td className="px-3 py-2 " colSpan={columns.length - 2}>
-                          <p className="text-sm text-gray-400">Try adding new feeds to see them here.</p>
-                        </td>
+                      : (
+                        // No feeds: show one row with project data
+                        <tr key={project._id} className="bg-gray-50">
+                          <td className="px-3 py-2">{idx + 1}</td> {/* No */}
+                          <td className="px-3 py-2">
+                            {project.ProjectCode || project.ProjectName
+                              ? `[${project.ProjectCode ?? "-"}] ${project.ProjectName ?? "-"}`
+                              : "-"}
+                          </td> {/* Project Name */}
 
-                      </tr>
-                    )
+                          <td className="px-3 py-2">-</td> {/* Feed Name */}
+                          {/* <td className="px-3 py-2">-</td>  */}
+                          <td className="px-3 py-2">{project.Frequency ?? "-"}</td> {/* Frequency */}
+                          <td className="px-3 py-2">-</td> {/* Platform */}
+                          <td className="px-3 py-2">-</td> {/* Status */}
+                          <td className="px-3 py-2">-</td> {/* BAU */}
+                          <td className="px-3 py-2">-</td> {/* POC */}
+                          <td className="px-3 py-2">{project.PMId?.name ?? "-"}</td> {/* PM */}
+                          <td className="px-3 py-2">-</td> {/* PC */}
+                          <td className="px-3 py-2">-</td> {/* TL */}
+                          <td className="px-3 py-2">-</td> {/* Developer */}
+                          <td className="px-3 py-2">-</td> {/* QA */}
+                          <td className="px-3 py-2">-</td> {/* BAU Person */}
+                          {/* <td className="px-3 py-2">{project.SOWFile?.length ? `${project.SOWFile.length} Files` : "-"}</td>  */}
+                          <td className="px-3 py-2">
+                            {project.SOWFile && project.SOWFile.length > 0 ? (
+                              <div className="inline-block relative">
+                                <button
+                                  onClick={() =>
+                                    setOpenDropdown(prev =>
+                                      prev?.rowIdx === idx && prev?.col === "SOWFile" ? null : { rowIdx: idx, col: "SOWFile" }
+                                    )
+                                  }
+                                  className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
+                                >
+                                  {project.SOWFile.length === 1 ? "View File" : `${project.SOWFile.length} Versions`}
+                                </button>
+                                {openDropdown?.rowIdx === idx && openDropdown?.col === "SOWFile" && (
+                                  <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
+                                    <ul className="p-0 m-0 list-none">
+                                      {project.SOWFile.map((file, fileIdx) => (
+                                        <li key={fileIdx} className="mb-1 last:mb-0">
+                                          <a
+                                            href={file}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            download
+                                            className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
+                                            title={file}
+                                          >
+                                            Version {fileIdx + 1}
+                                          </a>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          {/* <td className="px-3 py-2">{project.SampleFiles?.length ? `${project.SampleFiles.length} Files` : "-"}</td>  */}
+                          <td className="px-3 py-2 relative">
+                            {project.SampleFiles && project.SampleFiles.length > 0 ? (
+                              <div className="inline-block relative">
+                                <button
+                                  onClick={() =>
+                                    setOpenDropdown(prev =>
+                                      prev?.rowIdx === idx && prev?.col === "SampleFiles" ? null : { rowIdx: idx, col: "SampleFiles" }
+                                    )
+                                  }
+                                  className="text-blue-600 underline px-2 py-1 rounded hover:bg-gray-100"
+                                >
+                                  View Files
+                                </button>
+                                {openDropdown?.rowIdx === idx && openDropdown?.col === "SampleFiles" && (
+                                  <div className="absolute left-0 mt-1 min-w-[180px] max-h-52 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg p-2 z-50">
+                                    <ul className="p-0 m-0 list-none">
+                                      {project.SampleFiles.map((file, fileIdx) => (
+                                        <li key={fileIdx} className="mb-1 last:mb-0">
+                                          <a
+                                            href={file}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            download
+                                            className="block text-blue-600 hover:text-blue-800 hover:underline truncate"
+                                            title={file}
+                                          >
+                                            View File
+                                          </a>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2">-</td> {/* Framework type */}
+                          <td className="px-3 py-2">{project.QAReportCount ?? "-"}</td> {/* QA Report Count */}
+                          <td className="px-3 py-2">{project.ManageBy ?? "-"}</td> {/* Manage By */}
+                          <td className="px-3 py-2">{project.QARules ?? "-"}</td> {/* QA Rules */}
+                          <td className="px-3 py-2">{project.DBStatus ?? "-"}</td> {/* DB Status */}
+                          <td className="px-3 py-2">{project.DBType ?? "-"}</td> {/* DB Type */}
+                          <td className="px-3 py-2">{project.CreatedDate ? new Date(project.CreatedDate).toLocaleDateString() : "-"}</td> {/* Created Date */}
+                          <td className="px-3 py-2">{project.CreatedBy?.name ?? "-"}</td> {/* Project Created By */}
+                          {/* <td className="px-3 py-2">
+                            <button>
+                              <span className="text-blue-600 cursor-pointer hover:underline">Assign Feed to QA</span>
+                            </button>
+                          </td> */}
+                        </tr>
+
+                      )
                   )
                 ) : (
                   <tr>
@@ -1395,8 +1163,8 @@ export default function Projects() {
                   </tr>
                 )}
               </tbody>
-
             </table>
+
           </div>
         )}
 

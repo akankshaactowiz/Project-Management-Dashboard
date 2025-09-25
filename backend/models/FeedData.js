@@ -4,8 +4,8 @@ import mongoose from "mongoose";
 const feedSchema = new mongoose.Schema(
   {
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
-    FeedName: { type: String, required: true },
-    FeedId: { type: String, required: true },
+    FeedName: { type: String },
+    // FeedId: { type: String, required: true },
     Status: { type: String, default: "New" },
     Platform: { type: String, },
     BAU: { type: String, default: "None" },
@@ -23,7 +23,7 @@ const feedSchema = new mongoose.Schema(
     createdDate: { type: Date, default: Date.now },
 
      // --- New fields for frequency ---
-    Frequency: { type: String, enum: ["Daily", "Weekly", "Monthly"], required: true },
+    Frequency: { type: String, enum: ["Daily", "Weekly", "Monthly"]},
     TimelineTime: { type: String },          // e.g., "14:30"
     TimelineDay: { type: String },           // for weekly, e.g., "Monday"
     TimelineDate: { type: Number },          // for monthly, e.g., 15

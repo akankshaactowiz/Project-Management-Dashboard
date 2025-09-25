@@ -4,6 +4,9 @@ function Breadcrumb({ feedName }) {
   const location = useLocation();
 
   const pathnames = location.pathname.split("/").filter((x) => x);
+  if (location.pathname === "/" || location.pathname === "/home") {
+    return null;
+  }
 
   return (
     <nav aria-label="breadcrumb" className="bg-gray-50 px-6 py-2 text-gray-600">

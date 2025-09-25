@@ -280,51 +280,104 @@ function Home() {
       )
       }
 
-      {user?.roleName === "Sales Head" && (
+      {user?.department === "Sales" && (
         <main className="flex-1 bg-white overflow-auto p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              {/* <Users className="w-10 h-10 text-blue-600 mr-4" /> */}
-              <div>
-                <p className="text-gray-400 text-2xl font-bold">Projects Handed Over</p>
-                <h3 className="text-xl font-semibold text-gray-800">2</h3>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            {/* Card */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
+              <Activity className="w-8 h-8 text-blue-600 mb-4" />
+              <p className="text-gray-600 text-base font-medium">Total Projects</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">13</h3>
             </div>
-            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              {/* <User className="w-10 h-10 text-blue-600 mr-4" /> */}
-              <div>
-                <p className="text-gray-400 text-2xl font-bold">On-Time Deliveries</p>
-                <h3 className="text-xl font-semibold text-gray-800">3</h3>
-              </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
+              <Activity className="w-8 h-8 text-green-600 mb-4" />
+              <p className="text-gray-600 text-base font-medium">BAU Projects</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">3</h3>
             </div>
-            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              <Activity className="w-10 h-10 text-green-600 mr-4" />
-              <div>
-                <p className="text-gray-400 text-2xl font-bold">Escalation Rate</p>
-                <h3 className="text-xl font-semibold text-gray-800">3%</h3>
-              </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
+              <Activity className="w-8 h-8 text-yellow-500 mb-4" />
+              <p className="text-gray-600 text-base font-medium">Adhoc Projects</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">2</h3>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
+              <Activity className="w-8 h-8 text-purple-600 mb-4" />
+              <p className="text-gray-600 text-base font-medium">POC Projects</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">5</h3>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
+              <Activity className="w-8 h-8 text-pink-600 mb-4" />
+              <p className="text-gray-600 text-base font-medium">R&D Projects</p>
+              <h3 className="text-3xl font-bold text-gray-900 mt-1">3</h3>
             </div>
           </div>
+
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
             {/* Today's Delivery Overview */}
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Today's Delivery Overview</h2>
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex justify-between bg-green-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Total</span>
-                  <span className="font-bold text-green-600">12</span>
+            <div className="bg-white p-6 rounded-2xl shadow-sm">
+              <h2 className="text-xl font-semibold mb-6 text-gray-800">Today's Delivery Overview</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                 {/* Total Projects */}
+                <div className="flex items-center p-4 bg-green-50 rounded-xl">
+                  <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-full mr-4">
+                    <Activity className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-700 font-medium">Total</p>
+                    <h3 className="text-2xl font-bold text-gray-900">7</h3>
+                  </div>
                 </div>
-                <div className="flex justify-between bg-yellow-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Completed</span>
-                  <span className="font-bold text-yellow-600">5</span>
+                {/* BAU Projects */}
+                <div className="flex items-center p-4 bg-blue-50 rounded-xl">
+                  <div className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-full mr-4">
+                    <Activity className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-700 font-medium">BAU Projects</p>
+                    <h3 className="text-2xl font-bold text-gray-900">2</h3>
+                  </div>
                 </div>
-                <div className="flex justify-between bg-blue-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Pending</span>
-                  <span className="font-bold text-blue-600">3</span>
+
+                {/* POC Projects */}
+                <div className="flex items-center p-4 bg-purple-50 rounded-xl">
+                  <div className="w-12 h-12 flex items-center justify-center bg-purple-100 rounded-full mr-4">
+                    <Activity className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-700 font-medium">POC Projects</p>
+                    <h3 className="text-2xl font-bold text-gray-900">1</h3>
+                  </div>
+                </div>
+
+                {/* Adhoc Projects */}
+                <div className="flex items-center p-4 bg-yellow-50 rounded-xl">
+                  <div className="w-12 h-12 flex items-center justify-center bg-yellow-100 rounded-full mr-4">
+                    <Activity className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-700 font-medium">Adhoc Projects</p>
+                    <h3 className="text-2xl font-bold text-gray-900">1</h3>
+                  </div>
+                </div>
+
+                {/* R&D Projects */}
+                <div className="flex items-center p-4 bg-pink-50 rounded-xl">
+                  <div className="w-12 h-12 flex items-center justify-center bg-pink-100 rounded-full mr-4">
+                    <Activity className="w-6 h-6 text-pink-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-700 font-medium">R&D Projects</p>
+                    <h3 className="text-2xl font-bold text-gray-900">3</h3>
+                  </div>
                 </div>
               </div>
             </div>
+
 
             {/* Overview */}
 
@@ -348,110 +401,7 @@ function Home() {
 
       )}
 
-      {user?.roleName === "Sales Manager" && (
-        <main className="flex-1 bg-white overflow-auto p-6">
-         
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              {/* <Users className="w-10 h-10 text-blue-600 mr-4" /> */}
-              <div>
-                <p className="text-gray-400 text-2xl font-bold">Projects Handed Over</p>
-                <h3 className="text-xl font-semibold text-gray-800">2</h3>
-              </div>
-            </div>
-            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              {/* <User className="w-10 h-10 text-blue-600 mr-4" /> */}
-              <div>
-                <p className="text-gray-400 text-2xl font-bold">On-Time Deliveries</p>
-                <h3 className="text-xl font-semibold text-gray-800">3</h3>
-              </div>
-            </div>
-            <div className="flex items-center bg-white p-6 rounded-xl shadow hover:shadow-md transition">
-              <Activity className="w-10 h-10 text-green-600 mr-4" />
-              <div>
-                <p className="text-gray-400 text-2xl font-bold">Escalation Rate</p>
-                <h3 className="text-xl font-semibold text-gray-800">3%</h3>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-            {/* Today's Delivery Overview */}
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Today's Delivery Overview</h2>
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex justify-between bg-green-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Total</span>
-                  <span className="font-bold text-green-600">12</span>
-                </div>
-                <div className="flex justify-between bg-yellow-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Completed</span>
-                  <span className="font-bold text-yellow-600">5</span>
-                </div>
-                <div className="flex justify-between bg-blue-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Pending</span>
-                  <span className="font-bold text-blue-600">3</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Overview */}
-
-            {/* <OverdueSummary projects={projects} /> */}
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <h2 className="text-lg font-bold mb-4">Project Progress</h2>
-              <div className="flex items-center justify-center">
-                <div className="w-70 h-70"> {/* control chart size */}
-                  <Doughnut data={data} options={options} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </main>
-
-      )}
-
-      {user?.roleName === "Business Development Executive" && (
-        <main className="flex-1 bg-white overflow-auto p-6">
-       
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-            {/* Today's Delivery Overview */}
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Today's Delivery Overview</h2>
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex justify-between bg-green-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Total</span>
-                  <span className="font-bold text-green-600">12</span>
-                </div>
-                <div className="flex justify-between bg-yellow-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Completed</span>
-                  <span className="font-bold text-yellow-600">5</span>
-                </div>
-                <div className="flex justify-between bg-blue-100 p-3 rounded-md">
-                  <span className="text-gray-700 font-medium">Pending</span>
-                  <span className="font-bold text-blue-600">3</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Overview */}
-
-            {/* <OverdueSummary projects={projects} /> */}
-            <div className="bg-white p-4 rounded-md shadow-sm">
-              <h2 className="text-lg font-bold mb-4">Project Progress</h2>
-              <div className="flex items-center justify-center">
-                <div className="w-70 h-70"> {/* control chart size */}
-                  <Doughnut data={data} options={options} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </main>
-      )}
+     
 
       {/* Manager view */}
 
@@ -926,7 +876,7 @@ function Home() {
             </main>
           )}
 
-        
+
 
 
 

@@ -5,7 +5,7 @@ import { getData } from "country-list";
 function CreateFeed({ onClose, onSuccess }) {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState("");
-  const [feedId, setFeedId] = useState("");
+  // const [feedId, setFeedId] = useState("");
   const [feedName, setFeedName] = useState("");
   const [domainName, setDomainName] = useState("");
   const [applicationType, setApplicationType] = useState("");
@@ -21,6 +21,8 @@ function CreateFeed({ onClose, onSuccess }) {
   const [qaOptions, setQaOptions] = useState([]);
   const [tlOptions, setTlOptions] = useState([]);
   const [devOptions, setDevOptions] = useState([]);
+
+  const [pcOptions, setPcOptions] = useState([]);
 
   const countryOptions = getData().map((c) => ({
     value: c.code,
@@ -46,6 +48,26 @@ function CreateFeed({ onClose, onSuccess }) {
     };
 
     loadQaManagers();
+  }, []);
+
+    useEffect(() => {
+    const loadProjectCoordinator = async () => {
+      try {
+        const res = await fetch(
+          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/users/pc`,
+          { credentials: "include" }
+        );
+        if (!res.ok) throw new Error("Failed to fetch managers");
+
+        const data = await res.json();
+        setPcOptions(data.qaUsers || []);
+      } catch (err) {
+        console.error(err);
+        setPcOptions([]);
+      }
+    };
+
+    loadProjectCoordinator();
   }, []);
 
   // Fetch developers and TL
@@ -99,11 +121,12 @@ function CreateFeed({ onClose, onSuccess }) {
 
       const payload = {
         projectId,
-        FeedName: feedName,
-        FeedId: feedId,
+        // FeedName: feedName,
+        // FeedId: feedId,
         DomainName: domainName,
         ApplicationType: applicationType,
-        CountryName: country?.label,
+        CountryName: country?.value,
+      
         TLId: tlId?.value || null,
         QAId: qaId?.value || null,
         DeveloperIds: devId.map((d) => d.value),
@@ -149,13 +172,13 @@ function CreateFeed({ onClose, onSuccess }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Project */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Project
               </label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2 text-gray-400"
               >
                 <option value="" disabled>
                   Select Project
@@ -169,7 +192,7 @@ function CreateFeed({ onClose, onSuccess }) {
             </div>
 
             {/* Feed ID */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Feed ID
               </label>
@@ -181,10 +204,10 @@ function CreateFeed({ onClose, onSuccess }) {
                 className="w-full bg-gray-100 rounded p-2"
                 required
               />
-            </div>
+            </div> */}
 
             {/* Feed Name */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Feed Name
               </label>
@@ -195,7 +218,7 @@ function CreateFeed({ onClose, onSuccess }) {
                 placeholder="Feed Name"
                 className="w-full bg-gray-100 rounded p-2"
               />
-            </div>
+            </div> */}
 
             {/* Domain */}
             <div>
@@ -207,19 +230,19 @@ function CreateFeed({ onClose, onSuccess }) {
                 value={domainName}
                 onChange={(e) => setDomainName(e.target.value)}
                 placeholder="Domain Name"
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2"
               />
             </div>
 
             {/* Application Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Application Type
+                Platform Type
               </label>
               <select
                 value={applicationType}
                 onChange={(e) => setApplicationType(e.target.value)}
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2 text-gray-400"
               >
                 <option value="" disabled>
                   Select type
@@ -251,25 +274,27 @@ function CreateFeed({ onClose, onSuccess }) {
           <h3 className="mb-4 bg-purple-200 text-purple-700 px-3 py-2 rounded-md text-md font-semibold">
             Additional Information
           </h3>
+
+          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* QA */}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                QA Manager
+                Project Coordinator
               </label>
               <Select
-                options={qaOptions.map((u) => ({
+                options={pcOptions.map((u) => ({
                   value: u._id,
                   label: u.name,
                 }))}
-                value={qaId}
-                onChange={setQaId}
-                placeholder="Select QA"
+                value={pcId}
+                onChange={setPCId}
+                placeholder="Select PC"
               />
             </div>
 
-            {/* TL */}
-            <div>
+           <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Team Lead
               </label>
@@ -298,6 +323,38 @@ function CreateFeed({ onClose, onSuccess }) {
                 value={devId}
                 onChange={setDevId}
                 placeholder="Select Developers..."
+              />
+            </div>
+
+            {/* QA */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                QA Lead
+              </label>
+              <Select
+                options={qaOptions.map((u) => ({
+                  value: u._id,
+                  label: u.name,
+                }))}
+                value={qaId}
+                onChange={setQaId}
+                placeholder="Select QA"
+              />
+            </div>
+
+            {/* Execution Person */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Execution Person
+              </label>
+              <Select
+                // options={tlOptions.map((u) => ({
+                //   value: u._id,
+                //   label: u.name,
+                // }))}
+                // value={tlId}
+                // onChange={setTlId}
+                placeholder="Select Execution Person if any"
               />
             </div>
 

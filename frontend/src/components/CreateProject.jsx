@@ -13,7 +13,8 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     ProjectCode: "",
     ProjectName: "",
     SOWFile: "", // array
-    InputFiles: [], // array
+    // InputFiles: [],
+    InputFiles: [null],
     Frequency: "",
     Priority: "",
     ProjectType: "",
@@ -250,21 +251,23 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Project Code
               </label>
-              <div className="flex">
-                <span className="inline-flex items-center px-3 rounded-l bg-gray-200 text-gray-700">
-                  ACT
+              <div className="relative">
+                {/* Prefix inside input */}
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 pointer-events-none">
+                  ACT-
                 </span>
                 <input
                   type="text"
                   name="ProjectCode"
-                  value={form.ProjectCode} // only the user-typed part
+                  value={form.ProjectCode} // user types only the suffix
                   onChange={handleChange}
                   placeholder="Write Project Code"
-                  className="flex-1 bg-gray-100 rounded-r p-2"
+                  className="w-full border border-gray-300 rounded p-2 pl-16" // pl-16 to make space for prefix
                   required
                 />
               </div>
             </div>
+
 
 
             {/* Project Name */}
@@ -278,7 +281,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 value={form.ProjectName}
                 onChange={handleChange}
                 placeholder="Project Name"
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2"
               />
             </div>
 
@@ -363,54 +366,78 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             {/* SOW Document (Single File) */}
             <div>
               <label className="block font-medium mb-1">SOW Document</label>
-              <input
-                type="file"
-                onChange={(e) =>
-                  setForm({ ...form, SOWFile: e.target.files[0] })
-                }
-                className="w-full bg-gray-100 rounded p-2"
-                required
-              />
-              {form.SOWFile && (
-                <p className="text-sm text-gray-600 mt-1">
-                  {form.SOWFile.name}
-                </p>
-              )}
+              <div className="flex w-full rounded-lg border border-gray-500">
+                {/* The custom styled button */}
+                <label htmlFor="sow-file" className="px-4 py-2 bg-gray-500 text-white rounded-l-md cursor-pointer transition-colors">
+                  Choose File
+                </label>
+
+                {/* The hidden input field */}
+                <input
+                  id="sow-file"
+                  type="file"
+                  onChange={(e) => setForm({ ...form, SOWFile: e.target.files[0] })}
+                  className="hidden"
+                  required
+                />
+
+                {/* The text area displaying the filename or placeholder */}
+                <span className="flex-grow px-4 py-2 text-gray-500 bg-white rounded-r-md">
+                  {form.SOWFile ? form.SOWFile.name : 'no file chosen'}
+                </span>
+              </div>
             </div>
 
             {/* Sample File Attachments (Multiple) */}
             <div>
               <label className="block font-medium mb-1">Sample Files</label>
+
               {form.InputFiles.map((file, idx) => (
                 <div key={idx} className="flex gap-2 mb-2 items-center">
-                  <input
-                    type="file"
-                    onChange={(e) => {
-                      const updated = [...form.InputFiles];
-                      updated[idx] = e.target.files[0];
-                      setForm({ ...form, InputFiles: updated });
-                    }}
-                    className="flex-1 bg-gray-100 rounded p-2"
-                  />
-                  {file && <span className="text-sm text-gray-600">{file.name}</span>}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = form.InputFiles.filter((_, i) => i !== idx);
-                      setForm({ ...form, InputFiles: updated });
-                    }}
-                    className="px-3 py-1 bg-red-500 text-white rounded"
-                  >
-                    ✕
-                  </button>
+                  {/* File input component with custom styling */}
+                  <div className="flex flex-1 rounded-lg border border-gray-500">
+                    <label htmlFor={`input-file-${idx}`} className="px-4 py-2 bg-gray-500 text-white rounded-l-md cursor-pointer transition-colors">
+                      Choose File
+                    </label>
+                    <input
+                      id={`input-file-${idx}`}
+                      type="file"
+                      onChange={(e) => {
+                        const updated = [...form.InputFiles];
+                        updated[idx] = e.target.files[0];
+                        setForm({ ...form, InputFiles: updated });
+                      }}
+                      className="hidden"
+                      required
+                    />
+                    <span className="flex-grow px-4 py-2 text-gray-500 bg-white rounded-r-md">
+                      {file ? file.name : 'no file chosen'}
+                    </span>
+                  </div>
+
+                  {/* The remove button */}
+                  {idx > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = form.InputFiles.filter((_, i) => i !== idx);
+                        setForm({ ...form, InputFiles: updated });
+                      }}
+                      className="flex-shrink-0 px-3 py-1 bg-gray-500 text-white  h-8 w-8 flex items-center justify-center hover:bg-gray-600 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
               ))}
+
+              {/* The "Add Attachment" button */}
               <button
                 type="button"
                 onClick={() =>
                   setForm({ ...form, InputFiles: [...form.InputFiles, null] })
                 }
-                className="px-3 py-1 bg-blue-500 text-white rounded"
+                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
               >
                 + Add Attachment
               </button>
@@ -426,13 +453,15 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 name="ProjectType"
                 value={form.ProjectType}
                 onChange={handleChange}
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2"
               >
                 <option value="" disabled>
                   Select Project Type
                 </option>
                 <option value="POC">POC</option>
                 <option value="BAU">BAU</option>
+                <option value="R&D">R&D</option>
+                <option value="Adhoc">Adhoc</option>
               </select>
             </div>
 
@@ -443,7 +472,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 name="Frequency"
                 value={form.Frequency}
                 onChange={handleChange}
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2"
               >
                 <option value="" disabled>
                   Select Frequency
@@ -479,7 +508,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 name="Priority"
                 value={form.Priority}
                 onChange={handleChange}
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2"
               >
                 <option value="" disabled>
                   Select Priority
@@ -566,12 +595,12 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 value={form.Description}
                 onChange={(e) => setForm((prev) => ({ ...prev, Description: e.target.value }))}
                 placeholder="Enter description..."
-                className="w-full bg-gray-100 rounded p-2"
+                className="w-full border border-gray-300 rounded-r p-2"
                 rows={3}
               />
             </div>
 
-            <div>
+            {/* <div>
               <label htmlFor="bau-started" className="block mb-1">BAU started</label>
               <input
                 id="bau-started"
@@ -579,7 +608,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 onChange={(e) => setForm({ ...form, BAUstarted: e.target.value })}
                 className="flex-1 bg-gray-100 rounded p-2"
               />
-            </div>
+            </div> */}
           </div>
         </div>
 

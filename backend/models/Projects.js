@@ -5,7 +5,7 @@ import User from "./User.js";
 const activityLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   fromStatus: { type: String, },
-  toStatus: { type: String,},
+  toStatus: { type: String, },
   date: { type: Date, default: Date.now },
   comment: { type: String, },
   timestamp: { type: Date, default: Date.now }
@@ -19,10 +19,26 @@ const assignedFileSchema = new mongoose.Schema({
 const projectSchema = new mongoose.Schema({
   ProjectCode: { type: String, required: true, unique: true },
   Frequency: { type: String, default: "Daily" },
-  
+  ProjectType: { type: String, default: "N/A" },
+
   // --- SALES ---
-  SOWFile: [{ type: String, required: true }],
-  SampleFiles: [{ type: String, required: true }],
+  // SOWFile: [{ type: String, required: true }],
+  // SampleFiles: [{ type: String, required: true }],
+  SOWFile: [
+    {
+      fileName: { type: String, required: true },
+      uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      uploadedAt: { type: Date, default: Date.now }
+    }
+  ],
+  SampleFiles: [
+    {
+      fileName: { type: String, required: true },
+      uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      uploadedAt: { type: Date, default: Date.now }
+    }
+  ],
+
   PMId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   ProjectName: { type: String, required: true },
   BDEId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -30,16 +46,21 @@ const projectSchema = new mongoose.Schema({
   CreatedDate: { type: Date, default: Date.now },
   BAUStartDate: { type: Date },
   CreatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
- 
+
   Timeline: { type: String },
 
-  Description: { type: String},
+  Description: { type: String },
 
 
   Priority: { type: String, default: "N/A" },
+
+  // Project Statuses
   Status: { type: String, default: "New" },
-  Platform: { type: String,  },
-  BAU: { type: String , default: "None" },
+  qaStatus: { type: String, default: "N/A" },
+
+
+  Platform: { type: String, },
+  BAU: { type: String, default: "None" },
   POC: { type: String, default: "None" },
   PCId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   TLId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -57,7 +78,7 @@ const projectSchema = new mongoose.Schema({
   DBStatus: { type: String, default: "Actowizdb" },
   DBType: { type: String, default: "MongoDB" },
 
-  Feeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Feed"}],
+  Feeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Feed" }],
 
   // New fields for tracking QA cycles, history, etc.
   history: [activityLogSchema],
@@ -65,24 +86,24 @@ const projectSchema = new mongoose.Schema({
   reworkCount: { type: Number, default: 0 },
   assignedFiles: [assignedFileSchema],
   qaReports: [
-  {
-    comment: String,
-    status: { type: String,},
-    fileName: String,
-    fileLink: String,
-    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    uploadedAt: Date,
-    // uniqueId: String,
-    developerComments: [
-      {
-        comment: String,
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        date: { type: Date, default: Date.now }
-      }
-    ]
-  }
-],
-qaReportLink: { type: String, unique: true },
+    {
+      comment: String,
+      status: { type: String, },
+      fileName: String,
+      fileLink: String,
+      uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      uploadedAt: Date,
+      // uniqueId: String,
+      developerComments: [
+        {
+          comment: String,
+          userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+          date: { type: Date, default: Date.now }
+        }
+      ]
+    }
+  ],
+  qaReportLink: { type: String, unique: true },
   //  qaReports: [qaReportSchema],
   devSubmissions: [
     {

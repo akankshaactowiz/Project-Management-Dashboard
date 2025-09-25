@@ -59,7 +59,7 @@ export default function FeedDetails() {
     fetchFeed();
   }, [id]);
 
-  
+
   const columns = [
     "Timestamp",
     "Status",
@@ -71,7 +71,7 @@ export default function FeedDetails() {
   ];
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <div className="flex bg-gray-50 items-center justify-between px-2">
+      {/* <div className="flex bg-gray-50 items-center justify-end px-2">
         <Breadcrumb feedName={feed?.feedName} />
         <button
           className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded cursor-pointer"
@@ -80,7 +80,7 @@ export default function FeedDetails() {
           <FaEdit size={18} />
           <span>Edit</span>
         </button>
-      </div>
+      </div> */}
 
       {/* Top summary card */}
 
@@ -93,13 +93,22 @@ export default function FeedDetails() {
       ) : (
         feed && (
           <div className="bg-white rounded-lg shadow p-6 mt-4">
-            <h3 className="mb-4 bg-purple-200 text-purple-700 px-3 py-2 rounded-md text-md font-semibold">
-              {feed?.projectName || "Project Details"}
-            </h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="bg-purple-200 text-purple-700 px-3 py-2 rounded-md text-md font-semibold">
+                {feed?.projectName || "Feed Details"}
+              </h3>
+              <button
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded cursor-pointer"
+                onClick={() => navigate(`/project/feed/${id}/update`)}
+              >
+                <FaEdit size={18} />
+                <span>Edit</span>
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Feed Name:</p>
-                <p className="font-semibold">{feed.feedName}</p>
+                <p className="font-semibold">{feed.FeedName}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Feed Id:</p>
@@ -149,11 +158,10 @@ export default function FeedDetails() {
                 setCurrentPage(1);
                 setSearch("");
               }}
-              className={`py-2 font-medium ${
-                activeTab === tab
+              className={`py-2 font-medium ${activeTab === tab
                   ? "border-b-2 border-purple-600 text-purple-700"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -308,4 +316,3 @@ export default function FeedDetails() {
     </div>
   );
 }
-  

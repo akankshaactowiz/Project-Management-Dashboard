@@ -36,8 +36,8 @@ export const createFeed = async (req, res) => {
   try {
     const {
       projectId,
-      FeedName,
-      FeedId,
+      // FeedName,
+      // FeedId,
       DomainName,
       ApplicationType,
       CountryName,
@@ -52,18 +52,18 @@ export const createFeed = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!projectId || !FeedName || !FeedId) {
+    if (!projectId) {
       return res.status(400).json({
         success: false,
-        message: "Project, Feed Name, and Feed ID are required.",
+        message: "Project,  and Feed ID are required.",
       });
     }
 
     // Create new feed
     const newFeed = new Feed({
       projectId,
-      FeedName,
-      FeedId,
+      // FeedName,
+      // FeedId,
       DomainName,
       ApplicationType,
       CountryName,

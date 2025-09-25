@@ -24,6 +24,7 @@ import NotFound from "../page/NotFoundPage.jsx";
 import QAReportDetails from "../page/QAReportDetail.jsx"
 import DeveloperView from "../page/DeveloperReport.jsx"
 import ProjectInfo from "../page/ProjectDetails.jsx";
+import ProjectFilesPage from "../page/DocumentMaterialPage.jsx";
 function AppRoutes() {
   return (
     <Routes>
@@ -37,10 +38,12 @@ function AppRoutes() {
           <Route path="/project" element={<ProtectedRoute requiredModule="Project" requiredAction="view"><Project /></ProtectedRoute>} />
           <Route path="/project/:id" element={<ProtectedRoute requiredModule="Project" requiredAction="view"><ProjectInfo /></ProtectedRoute>} ></Route>
           {/* <Route path="/project/:id/details" element={<ProtectedRoute requiredModule="Project" requiredAction="update"><ProjectInfo /></ProtectedRoute>} key="project-update"></Route> */}
-          <Route path="/project/feed" element={
-            <FeedPage />} />
-          <Route path="/feed/:id" element={<ProtectedRoute requiredModule="Feed" requiredAction="update"><FeedDetails /></ProtectedRoute>} key="feed"></Route>
-          <Route path="/feed/:id/update" element={<ProtectedRoute requiredModule="Feed" requiredAction="update"><FeedUpdate /></ProtectedRoute>} key="feed-update"></Route>
+          {/* <Route path="/project/feed" element={
+            <FeedPage />} /> */}
+          <Route path="/project/:id/files" element={<ProjectFilesPage />} />
+
+          <Route path="/project/feed/:id" element={<ProtectedRoute requiredModule="Feed" requiredAction="update"><FeedDetails /></ProtectedRoute>} key="feed"></Route>
+          <Route path="/project/feed/:id/update" element={<ProtectedRoute requiredModule="Feed" requiredAction="update"><FeedUpdate /></ProtectedRoute>} key="feed-update"></Route>
           <Route path="/escalation" element={<ProtectedRoute requiredModule="Escalation" requiredAction="view"><Escalations /></ProtectedRoute>} />
           <Route path="/qa" element={<ProtectedRoute requiredModule="QA" requiredAction="view"><QA /></ProtectedRoute>} />
            <Route path="/qa/:id" element={<QAReportDetails />} />

@@ -51,64 +51,64 @@ import FeedData from "../models/FeedData.js";
 // };
 
 
-export const createProject = async (req, res) => {
-  try {
-    let {
-      ProjectCode,
-      ProjectName,
-      PMId,
-      BDEId,
-      DepartmentId: Department,
-      Frequency,
-      Priority,
-      ProjectType,
-      Timeline,
-      Description,
-    } = req.body;
+// export const createProject = async (req, res) => {
+//   try {
+//     let {
+//       ProjectCode,
+//       ProjectName,
+//       PMId,
+//       BDEId,
+//       DepartmentId: Department,
+//       Frequency,
+//       Priority,
+//       ProjectType,
+//       Timeline,
+//       Description,
+//     } = req.body;
 
-    const createdBy = req.user?._id || null;
+//     const createdBy = req.user?._id || null;
 
-    ProjectCode = `ACT${ProjectCode}`;
+//     ProjectCode = `ACT-${ProjectCode}`;
 
-    // Extract file paths from multer
-const BACKEND_URL = process.env.BACKEND_URL || "http://172.28.148.130:5000";
+//     // Extract file paths from multer
+//     const BACKEND_URL = process.env.BACKEND_URL || "http://172.28.148.130:5000";
 
-const SOWFile = req.files?.SOWFile
-  ? req.files.SOWFile.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
-  : [];
+//     const SOWFile = req.files?.SOWFile
+//       ? req.files.SOWFile.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
+//       : [];
 
-const SampleFiles = req.files?.SampleFiles
-  ? req.files?.SampleFiles.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
-  : [];
+//     const SampleFiles = req.files?.SampleFiles
+//       ? req.files?.SampleFiles.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
+//       : [];
 
-    const project = new Project({
-      ProjectCode,
-      ProjectName,
-      SOWFile,
-      SampleFiles,
-      PMId,
-      BDEId,
-      Department,
-      Frequency,
-      ProjectType,
-      Priority,
-      Timeline: Timeline || "",
-      Description: Description || "",
-      CreatedBy: createdBy,
-    });
+//     const project = new Project({
+//       ProjectCode,
+//       ProjectName,
+//       SOWFile,
+//       SampleFiles,
+//       PMId,
+//       BDEId,
+//       Department,
+//       Frequency,
+//       ProjectType,
+//       Priority,
+//       Timeline: Timeline || "",
+//       Description: Description || "",
+//       CreatedBy: createdBy,
+//     });
 
-    await project.save();
+//     await project.save();
 
-    res.status(201).json({
-      success: true,
-      data: project,
-      message: "Project created with uploaded files",
-    });
-  } catch (error) {
-    console.error("Error creating project:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+//     res.status(201).json({
+//       success: true,
+//       data: project,
+//       message: "Project created with uploaded files",
+//     });
+//   } catch (error) {
+//     console.error("Error creating project:", error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
 
 // export const updateProject = async (req, res) => {
 //   try {
@@ -347,6 +347,76 @@ const SampleFiles = req.files?.SampleFiles
 //   }
 // };
 
+
+export const createProject = async (req, res) => {
+  try {
+    let {
+      ProjectCode,
+      ProjectName,
+      PMId,
+      BDEId,
+      DepartmentId: Department,
+      Frequency,
+      Priority,
+      ProjectType,
+      Timeline,
+      Description,
+    } = req.body;
+
+    const createdBy = req.user?._id || null; // logged-in user
+
+    // Prepend ACT prefix
+    ProjectCode = `ACT-${ProjectCode}`;
+
+    const BACKEND_URL = process.env.BACKEND_URL || "http://172.28.148.130:5000";
+
+    // Convert SOW files to objects with metadata
+    const SOWFile = req.files?.SOWFile
+      ? req.files.SOWFile.map(f => ({
+        fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+        uploadedBy: createdBy,
+        uploadedAt: new Date(),
+      }))
+      : [];
+
+    // Convert SampleFiles to objects with metadata
+    const SampleFiles = req.files?.SampleFiles
+      ? req.files.SampleFiles.map(f => ({
+        fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+        uploadedBy: createdBy,
+        uploadedAt: new Date(),
+      }))
+      : [];
+
+    const project = new Project({
+      ProjectCode,
+      ProjectName,
+      SOWFile,
+      SampleFiles,
+      PMId,
+      BDEId,
+      DepartmentId: Department,
+      Frequency,
+      ProjectType,
+      Priority,
+      Timeline: Timeline || "",
+      Description: Description || "",
+      CreatedBy: createdBy,
+    });
+
+    await project.save();
+
+    res.status(201).json({
+      success: true,
+      data: project,
+      message: "Project created with uploaded files",
+    });
+  } catch (error) {
+    console.error("Error creating project:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -378,16 +448,33 @@ export const updateProject = async (req, res) => {
 
     // Get newly uploaded files (if any)
     const BACKEND_URL = process.env.BACKEND_URL || "http://172.28.148.130:5000";
+    // const newSOW = req.files?.SOWFile
+    //   ? req.files.SOWFile.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
+    //   : [];
+    // const newSamples = req.files?.SampleFiles
+    //   ? req.files?.SampleFiles.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
+    //   : [];
+
+    // Convert new uploads to objects with metadata
     const newSOW = req.files?.SOWFile
-      ? req.files.SOWFile.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
-      : [];
-    const newSamples = req.files?.SampleFiles
-      ? req.files?.SampleFiles.map(f => `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`)
+      ? req.files.SOWFile.map(f => ({
+        fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+        uploadedBy: req.user._id, // assumes user is attached to req
+        uploadedAt: new Date()
+      }))
       : [];
 
-    // Merge existing with new uploads
-    const updatedSOW = [...project.SOWFile, ...newSOW];
-    const updatedSamples = [...project.SampleFiles, ...newSamples];
+    const newSamples = req.files?.SampleFiles
+      ? req.files.SampleFiles.map(f => ({
+        fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+        uploadedBy: req.user._id,
+        uploadedAt: new Date()
+      }))
+      : [];
+
+    // Merge with existing files
+    project.SOWFile = [...project.SOWFile, ...newSOW];
+    project.SampleFiles = [...project.SampleFiles, ...newSamples];
 
     // Update fields
     project.ProjectName = ProjectName || project.ProjectName;
@@ -400,8 +487,8 @@ export const updateProject = async (req, res) => {
     project.ProjectType = ProjectType || project.ProjectType;
     project.Timeline = Timeline || project.Timeline;
     project.Description = Description || project.Description;
-    project.SOWFile = updatedSOW;
-    project.SampleFiles = updatedSamples;
+    // project.SOWFile = updatedSOW;
+    // project.SampleFiles = updatedSamples;
 
     await project.save();
 
@@ -415,6 +502,7 @@ export const updateProject = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const getProjects = async (req, res) => {
   try {
@@ -437,10 +525,21 @@ export const getProjects = async (req, res) => {
     if (status && status !== "All") filter.Status = { $regex: `^${status}$`, $options: "i" };
 
     // Search filter
-    if (search) filter.ProjectName = { $regex: search, $options: "i" };
+    // if (search) filter.ProjectName = { $regex: search, $options: "i" };
+    if (search) {
+      const regex = { $regex: search, $options: "i" };
+      filter.$or = [
+        { ProjectName: regex },
+        { ProjectCode: regex },
+        { Frequency: regex },
+        // { "PMId.name": regex } // nested field for populated PM
+      ];
+    }
 
     // QA filter
     if (qaid) filter.QAId = qaid;
+
+
 
     // Date range filter
     if (date_range) {
@@ -497,13 +596,21 @@ export const getProjects = async (req, res) => {
         filter.CreatedDate = { $gte: startDate, $lt: endDate };
       }
     }
-
-
-
     // Role-based filtering
     const userId = req.user._id;
     const role = req.user.roleId?.name; // e.g., "Superadmin", "Sales Head", "Sales Manager", "BDE"
     const department = req.user.departmentId?.department;
+    // --- Sales Tab Filter ---
+    const salesTabs = ["All", "BAU", "POC", "R&D", "Adhoc"];
+    const { tab } = req.query;
+    if (department === "Sales" && tab && tab !== "All" && salesTabs.includes(tab)) {
+      filter.ProjectType = tab;
+    }
+
+
+
+    // Role-based filtering
+
 
     if (role === "Superadmin") {
       // No filter, get all projects
@@ -563,6 +670,16 @@ export const getProjects = async (req, res) => {
     const projects = await Project.find(filter)
       .populate("PMId TLId DeveloperIds QAId BAUPersonId BDEId")
       .populate("CreatedBy", "name")
+      .populate({
+        path: "SOWFile",
+        model: "File",
+        match: { fileType: "SOW" },
+      })
+      .populate({
+        path: "SampleFiles",
+        model: "File",
+        match: { fileType: "Sample" },
+      })
       .populate("Feeds")
       .populate({
         path: "Feeds",
@@ -572,7 +689,20 @@ export const getProjects = async (req, res) => {
           { path: "QAId", select: "name email roleId" },
           { path: "BAUPersonId", select: "name email roleId" },
           { path: "createdBy", select: "name email" },
+
         ],
+      })
+      .populate({
+        path: "SOWFile",
+        populate: [
+          { path: "uploadedBy", select: "name" },
+        ]
+      })
+      .populate({
+        path: "SampleFiles",
+        populate: [
+          { path: "uploadedBy", select: "name" },
+        ]
       })
 
       .sort({ CreatedDate: -1 })
@@ -719,21 +849,33 @@ export const getProjects = async (req, res) => {
 //   }
 // };
 
+import mongoose from "mongoose";
+
 export const getProjectById = async (req, res) => {
-  try {
-    const project = await Project.findById(req.params.id)
-      .populate("PMId TLId DeveloperIds QAId BAUPersonId")
-      .populate("qaReports.uploadedBy", "name")
-      ; // optional: populate user info
+  const { id } = req.params;
 
-    if (!project) return res.status(404).json({ message: "Project not found" });
-
-    res.status(200).json({ project });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid project ID" });
   }
+
+  try {
+    const project = await Project.findById(id)
+      .populate("PMId TLId DeveloperIds QAId BAUPersonId")
+    
+      .populate("SOWFile.uploadedBy", "name")
+      .populate("SampleFiles.uploadedBy", "name")
+      .populate("qaReports.uploadedBy", "name");
+
+if (!project) return res.status(404).json({ message: "Project not found" });
+
+res.status(200).json({ success: true, project });
+  } catch (err) {
+  console.error(err);
+  res.status(500).json({ message: "Server error" });
+}
 };
+
 
 export const updateProjectTeam = async (req, res) => {
   try {
