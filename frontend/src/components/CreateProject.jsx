@@ -1,17 +1,26 @@
 import { useState, useEffect } from "react";
 import Select from "react-select";
+import { getData } from "country-list";
 
 export default function CreateProjectModal({ isOpen, onClose }) {
   // --- Option states ---
+  const [domainName, setDomainName] = useState("");
+  const [feedName, setFeedName] = useState("");
+  const [applicationType, setApplicationType] = useState("");
+  const [country, setCountry] = useState(null);
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [pmOptions, setPmOptions] = useState([]); // managers for selected department
   const [bdeOptions, setBdeOptions] = useState([]); // business development execs
-
+  const countryOptions = getData().map((c) => ({
+    value: c.code,
+    label: c.name,
+  }));
   // --- State for form fields ---
   const [form, setForm] = useState({
     ProjectCode: "",
     ProjectName: "",
+
     SOWFile: "", // array
     // InputFiles: [],
     InputFiles: [null],
@@ -188,7 +197,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     try {
       const formData = new FormData();
 
-      // Append regular fields
+      // Project fields
       formData.append("ProjectCode", form.ProjectCode);
       formData.append("ProjectName", form.ProjectName);
       formData.append("Frequency", form.Frequency);
@@ -200,37 +209,40 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       formData.append("Timeline", form.Timeline || "");
       formData.append("Description", form.Description || "");
 
-      // Append single SOW file
-      if (form.SOWFile) {
-        formData.append("SOWFile", form.SOWFile);
-      }
-
-      // Append multiple sample files
+      // Files
+      if (form.SOWFile) formData.append("SOWFile", form.SOWFile);
       form.InputFiles.forEach((file) => {
         if (file) formData.append("SampleFiles", file);
       });
 
+      // Initial feed fields
+      formData.append("FeedName", feedName);
+      formData.append("DomainName", domainName);
+      formData.append("ApplicationType", applicationType);
+      formData.append("CountryName", country?.value || "");
+
+      // --- Create project + initial feed on backend ---
       const res = await fetch(
         `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects`,
         {
           method: "POST",
           credentials: "include",
-          body: formData, // <-- multipart/form-data
+          body: formData,
         }
       );
 
-      const data = await res.json();
-      if (data.success) {
-        alert("Project created successfully!");
-        onClose();
-      } else {
-        alert(data.message || "Something went wrong");
-      }
+      const projectData = await res.json();
+      if (!projectData.success) throw new Error(projectData.message || "Failed to create project");
+
+      alert("Project and initial feed created successfully!");
+      onClose();
     } catch (error) {
       console.error("Error saving project:", error);
       alert("Failed to save project");
     }
   };
+
+
 
 
   if (!isOpen) return null;
@@ -609,6 +621,76 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 className="flex-1 bg-gray-100 rounded p-2"
               />
             </div> */}
+          </div>
+        </div>
+
+        {/* Feed Details */}
+        <div className="mb-6">
+          <h3 className="mb-4 bg-purple-200 text-purple-700 px-3 py-2 rounded-md text-md font-semibold">
+            Feed Details
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Feed Name
+              </label>
+              <input
+                type="text"
+                value={feedName}
+                onChange={(e) => setFeedName(e.target.value)}
+                placeholder="Feed Name"
+                className="w-full border border-gray-300 rounded-r p-2"
+              />
+            </div>
+
+            {/* Project Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Domain Name
+              </label>
+              <input
+                type="text"
+                value={domainName}
+                onChange={(e) => setDomainName(e.target.value)}
+                placeholder="Domain Name"
+                className="w-full border border-gray-300 rounded-r p-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Application Type
+              </label>
+              <select
+                value={applicationType}
+                onChange={(e) => setApplicationType(e.target.value)}
+                className="w-full border border-gray-300 rounded-r p-2"
+              >
+                <option value="" disabled>
+                  Select type
+                </option>
+                <option value="Web">Web</option>
+                <option value="Mobile">App</option>
+              </select>
+            </div>
+
+
+            {/* Country */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Country Name
+              </label>
+              <Select
+                name="country"
+                options={countryOptions}
+                value={country}
+                onChange={setCountry}
+                isSearchable
+                placeholder="Select Country"
+              />
+            </div>
+
+
           </div>
         </div>
 

@@ -3,7 +3,8 @@ import User from "../models/User.js";
 import { v4 as uuidv4 } from 'uuid';
 import Task from "../models/TaskData.js";
 import Notification from "../models/Notification.js";
-import FeedData from "../models/FeedData.js";
+import Feed from "../models/FeedData.js";
+import { generateFeedId } from "../utils/generateFeedId.js";
 import mongoose from "mongoose";
 
 
@@ -349,11 +350,104 @@ import mongoose from "mongoose";
 // };
 
 
+// export const createProject = async (req, res) => {
+//   try {
+//     let {
+//       ProjectCode,
+//       ProjectName,
+//       PMId,
+//       BDEId,
+//       DepartmentId: Department,
+//       Frequency,
+//       Priority,
+//       ProjectType,
+//       Timeline,
+//       Description,
+//       // ✅ Initial feed fields
+//       DomainName,
+//       ApplicationType,
+//       CountryName,
+//     } = req.body;
+
+//     const createdBy = req.user?._id || null; // logged-in user
+
+//     // Prepend ACT prefix
+//     ProjectCode = `[ACT-${ProjectCode}]`;
+
+//     const BACKEND_URL = process.env.BACKEND_URL || "http://172.28.148.130:5000";
+
+//     // Convert SOW files to objects with metadata
+//     const SOWFile = req.files?.SOWFile
+//       ? req.files.SOWFile.map(f => ({
+//           fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+//           uploadedBy: createdBy,
+//           uploadedAt: new Date(),
+//         }))
+//       : [];
+
+//     // Convert SampleFiles to objects with metadata
+//     const SampleFiles = req.files?.SampleFiles
+//       ? req.files.SampleFiles.map(f => ({
+//           fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+//           uploadedBy: createdBy,
+//           uploadedAt: new Date(),
+//         }))
+//       : [];
+
+//     // 1️⃣ Create Project
+//     const project = new Project({
+//       ProjectCode,
+//       ProjectName,
+//       SOWFile,
+//       SampleFiles,
+//       PMId,
+//       BDEId,
+//       DepartmentId: Department,
+//       Frequency,
+//       ProjectType,
+//       Priority,
+//       Timeline: Timeline || "",
+//       Description: Description || "",
+//       CreatedBy: createdBy,
+//     });
+
+//     await project.save();
+
+//     // 2️⃣ Create initial Feed (only 3 fields + projectId + FeedId)
+//     const FeedId = generateFeedId(); // numeric ID
+
+//     const initialFeed = new Feed({
+//       projectId: project._id,
+//       FeedId,
+//       DomainName,
+//       ApplicationType,
+//       CountryName,
+//       createdBy,
+//     });
+
+//     await initialFeed.save();
+
+//     // 3️⃣ Push feed reference to Project.Feeds
+//     await Project.findByIdAndUpdate(project._id, { $push: { Feeds: initialFeed._id } });
+//     await project.save();
+
+//     res.status(201).json({
+//       success: true,
+//       data: { project, feed: initialFeed },
+//       message: "Project created with uploaded files and initial feed",
+//     });
+//   } catch (error) {
+//     console.error("Error creating project:", error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
 export const createProject = async (req, res) => {
   try {
-    let {
+    const {
       ProjectCode,
       ProjectName,
+      FeedName,
       PMId,
       BDEId,
       DepartmentId: Department,
@@ -362,35 +456,34 @@ export const createProject = async (req, res) => {
       ProjectType,
       Timeline,
       Description,
+      DomainName,
+      ApplicationType,
+      CountryName,
     } = req.body;
 
-    const createdBy = req.user?._id || null; // logged-in user
-
-    // Prepend ACT prefix
-    ProjectCode = `ACT-${ProjectCode}`;
+    const createdBy = req.user?._id || null;
 
     const BACKEND_URL = process.env.BACKEND_URL || "http://172.28.148.130:5000";
 
-    // Convert SOW files to objects with metadata
-    const SOWFile = req.files?.SOWFile
-      ? req.files.SOWFile.map(f => ({
-        fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
-        uploadedBy: createdBy,
-        uploadedAt: new Date(),
-      }))
-      : [];
+    const SOWFile = req.files?.SOWFile?.map(f => ({
+      fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+      uploadedBy: createdBy,
+      uploadedAt: new Date(),
+    })) || [];
 
-    // Convert SampleFiles to objects with metadata
-    const SampleFiles = req.files?.SampleFiles
-      ? req.files.SampleFiles.map(f => ({
-        fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
-        uploadedBy: createdBy,
-        uploadedAt: new Date(),
-      }))
-      : [];
+    const SampleFiles = req.files?.SampleFiles?.map(f => ({
+      fileName: `${BACKEND_URL}/${f.path.replace(/\\/g, "/")}`,
+      uploadedBy: createdBy,
+      uploadedAt: new Date(),
+    })) || [];
 
-    const project = new Project({
-      ProjectCode,
+    // Prepend ACT prefix
+    const finalProjectCode = `[ACT-${ProjectCode}]`;
+
+    // 1️⃣ Create Project
+    // 1️⃣ Create Project
+    const project = await Project.create({
+      ProjectCode: finalProjectCode,
       ProjectName,
       SOWFile,
       SampleFiles,
@@ -405,18 +498,36 @@ export const createProject = async (req, res) => {
       CreatedBy: createdBy,
     });
 
-    await project.save();
+    // 2️⃣ Create initial Feed linked to project
+    const FeedId = generateFeedId();
+
+    const initialFeed = await Feed.create({
+      projectId: project._id,
+      FeedId,
+      FeedName,
+      DomainName,
+      ApplicationType,
+      CountryName,
+      createdBy,
+    });
+
+    // 3️⃣ Add feed reference to project
+    project.Feeds.push(initialFeed._id);
+    await project.save(); // ✅ Only saves the updated Feeds array
+
 
     res.status(201).json({
       success: true,
-      data: project,
-      message: "Project created with uploaded files",
+      data: { project, feed: initialFeed },
+      message: "Project created with uploaded files and initial feed",
     });
+
   } catch (error) {
     console.error("Error creating project:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 export const updateProject = async (req, res) => {
   try {
@@ -437,12 +548,18 @@ export const updateProject = async (req, res) => {
     } = req.body;
 
     // Prepend "ACT" prefix to ProjectCode
-    if (ProjectCode) {
-      ProjectCode = `ACT${ProjectCode}`;
-    }
+    // if (ProjectCode) {
+    //   ProjectCode = `ACT${ProjectCode}`;
+    // }
 
     // Fetch existing project
     const project = await Project.findById(id);
+    if (ProjectCode) {
+      // Remove any existing ACT or ACT- prefix from user input
+      const suffix = ProjectCode.replace(/^ACT-?/, '');
+      ProjectCode = `[ACT-${suffix}]`;
+    }
+    project.ProjectCode = ProjectCode || project.ProjectCode;
     if (!project) {
       return res.status(404).json({ success: false, message: "Project not found" });
     }
@@ -516,6 +633,7 @@ export const getProjects = async (req, res) => {
       date_range,
       // qaStatus,
       qaid,
+      CreatedDate
     } = req.query;
 
 
@@ -523,6 +641,8 @@ export const getProjects = async (req, res) => {
     const filter = {};
     // if (qaStatus) filter.QAStatus = qaStatus;
     // Status filter
+
+
     if (status && status !== "All") filter.Status = { $regex: `^${status}$`, $options: "i" };
 
     // Search filter
@@ -535,6 +655,15 @@ export const getProjects = async (req, res) => {
         { Frequency: regex },
         // { "PMId.name": regex } // nested field for populated PM
       ];
+    }
+
+    // if(CreatedDate) filter.CreatedDate = { $gte: new Date(CreatedDate) };
+    if (CreatedDate) {
+      const start = new Date(CreatedDate);        // start of day
+      const end = new Date(CreatedDate);
+      end.setHours(23, 59, 59, 999);             // end of day
+
+      filter.CreatedDate = { $gte: start, $lte: end };
     }
 
     // QA filter
@@ -672,7 +801,8 @@ export const getProjects = async (req, res) => {
     // Query database
     const total = await Project.countDocuments(filter);
     const projects = await Project.find(filter)
-      .populate("PMId TLId DeveloperIds QAId BAUPersonId BDEId")
+      .populate("PMId TLId DeveloperIds QAId BAUPersonId BDEId", "name")
+      .populate("DepartmentId", "department")
       .populate("CreatedBy", "name")
       .populate({
         path: "SOWFile",
@@ -687,6 +817,7 @@ export const getProjects = async (req, res) => {
       .populate("Feeds")
       .populate({
         path: "Feeds",
+
         populate: [
           { path: "TLId", select: "name email roleId" },
           { path: "DeveloperIds", select: "name email roleId" },
@@ -724,6 +855,37 @@ export const getProjects = async (req, res) => {
   } catch (error) {
     console.error("Error in getProjects:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const getProjectCounts = async (req, res) => {
+  try {
+    // No filter applied
+    const counts = await Project.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          bau: { $sum: { $cond: [{ $eq: ["$ProjectType", "BAU"] }, 1, 0] } },
+          adhoc: { $sum: { $cond: [{ $eq: ["$ProjectType", "Adhoc"] }, 1, 0] } },
+          onceOff: { $sum: { $cond: [{ $eq: ["$ProjectType", "Once-Off"] }, 1, 0] } },
+          poc: { $sum: { $cond: [{ $eq: ["$ProjectType", "POC"] }, 1, 0] } },
+          rnd: { $sum: { $cond: [{ $eq: ["$ProjectType", "R&D"] }, 1, 0] } },
+          newStatus: { $sum: { $cond: [{ $eq: ["$Status", "New"] }, 1, 0] } },
+          underDevelopment: { $sum: { $cond: [{ $eq: ["$Status", "Under Development"] }, 1, 0] } },
+          onHold: { $sum: { $cond: [{ $eq: ["$Status", "On-Hold"] }, 1, 0] } },
+          devCompleted: { $sum: { $cond: [{ $eq: ["$Status", "Development Completed"] }, 1, 0] } },
+          closed: { $sum: { $cond: [{ $eq: ["$Status", "Closed"] }, 1, 0] } },
+          totalFeeds: { $sum: { $size: "$Feeds" } }, 
+        },
+      },
+    ]);
+
+    res.json(counts[0] || {}); // return the aggregated counts
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch project counts" });
   }
 };
 
@@ -865,18 +1027,18 @@ export const getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(id)
       .populate("PMId TLId DeveloperIds QAId BAUPersonId")
-    
+
       .populate("SOWFile.uploadedBy", "name")
       .populate("SampleFiles.uploadedBy", "name")
-      .populate("qaReports.uploadedBy", "name");
 
-if (!project) return res.status(404).json({ message: "Project not found" });
 
-res.status(200).json({ success: true, project });
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    res.status(200).json({ success: true, project });
   } catch (err) {
-  console.error(err);
-  res.status(500).json({ message: "Server error" });
-}
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 

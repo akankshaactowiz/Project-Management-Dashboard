@@ -2,6 +2,7 @@ import FeedData from "../models/FeedData.js";
 import mongoose from "mongoose";
 import Project from "../models/Projects.js"
 import Feed from "../models/FeedData.js";
+import { generateFeedId } from "../utils/generateFeedId.js";
 
 // GET /api/table?status=Active&page=2&limit=5&sort=createdAt:desc&search=abc
 
@@ -52,18 +53,19 @@ export const createFeed = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!projectId) {
-      return res.status(400).json({
-        success: false,
-        message: "Project,  and Feed ID are required.",
-      });
-    }
+    // if (!projectId) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Project,  and Feed ID are required.",
+    //   });
+    // }
+ 
 
     // Create new feed
     const newFeed = new Feed({
       projectId,
       // FeedName,
-      // FeedId,
+      FeedId: generateFeedId(),
       DomainName,
       ApplicationType,
       CountryName,
@@ -77,6 +79,7 @@ export const createFeed = async (req, res) => {
       BAUPersonId,
       createdBy: req.user?._id || null, // if you have auth middleware
     });
+    
 
     await newFeed.save();
 
@@ -84,6 +87,7 @@ export const createFeed = async (req, res) => {
     await Project.findByIdAndUpdate(projectId, {
       $push: { Feeds: newFeed._id },
     });
+
 
     res.status(201).json({
       success: true,

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth.js";
+import { useNavigate } from "react-router-dom";
 import OverdueSummary from "../components/OverdueSummary.jsx";
 import { Doughnut } from "react-chartjs-2";
 import {
@@ -21,12 +22,19 @@ import {
 import SalesSummaryDashboard from "../components/SalesSummaryView.jsx";
 
 function Home() {
+  const navigate = useNavigate();
   const { user, loading: userLoading } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [projects, setProjects] = useState([]);
+
   // const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("tasks");
+
+
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [projectCounts, setProjectCounts] = useState({});
 
   // Fetch tickets and tasks
   // useEffect(() => {
@@ -143,6 +151,32 @@ function Home() {
     },
   };
   // if (userLoading || loading) return <div className="p-4">Loading...</div>;
+
+  const fetchCounts = async () => {
+    try {
+      const res = await fetch(
+        `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/projects/counts`,
+        { credentials: "include" }
+      );
+      const data = await res.json();
+      console.log("Fetched counts:", data);
+      setProjectCounts(data);
+    } catch (err) {
+      console.error("Failed to fetch project counts:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCounts();
+  }, []);
+
+
+  useEffect(() => {
+    fetchCounts();
+  }, []);
+
 
   return (
     <div className="flex flex-col md:flex-row gap-4 bg-gray-50">
@@ -282,128 +316,162 @@ function Home() {
 
       {user?.department === "Sales" && (
         <main className="flex-1 bg-white overflow-auto p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {/* Card 1 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
-              <Activity className="w-8 h-8 text-blue-600 mb-4" />
-              <p className="text-gray-600 text-base font-medium">Total Projects</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">15</h3>
+          <div className="space-y-6 mb-8">
+            {/* Row 1: Total Projects & Total Feeds */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Total Projects Card */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+                onClick={() => navigate("/project")}>
+                <Activity className="w-8 h-8 text-blue-600 mb-4" />
+                <p className="text-gray-600 text-base font-medium">Total Projects</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                  {loading ? "..." : projectCounts.total || 0}
+                </h3>
+              </div>
+
+              {/* Total Feeds Card */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+                onClick={() => navigate("/project")}>
+                <Activity className="w-8 h-8 text-blue-600 mb-4" />
+                <p className="text-gray-600 text-base font-medium">Total Feeds</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                  {loading ? "..." : projectCounts.totalFeeds || 0}
+                </h3>
+              </div>
             </div>
 
-            {/* Card 2 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
-              <Activity className="w-8 h-8 text-green-600 mb-4" />
-              <p className="text-gray-600 text-base font-medium">BAU Projects</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">3</h3>
-            </div>
+            {/* Row 2: Other Project Types */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+              {/* BAU Projects */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+                onClick={() => navigate("/project")}>
+                <Activity className="w-8 h-8 text-green-600 mb-4" />
+                <p className="text-gray-600 text-base font-medium">BAU Projects</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                  {loading ? "..." : projectCounts.bau || 0}
+                </h3>
+              </div>
 
-            {/* Card 3 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
-              <Activity className="w-8 h-8 text-yellow-500 mb-4" />
-              <p className="text-gray-600 text-base font-medium">Adhoc Projects</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">2</h3>
-            </div>
+              {/* Adhoc Projects */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+                onClick={() => navigate("/project")}>
+                <Activity className="w-8 h-8 text-yellow-500 mb-4" />
+                <p className="text-gray-600 text-base font-medium">Adhoc Projects</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                  {loading ? "..." : projectCounts.adhoc || 0}
+                </h3>
+              </div>
 
-            {/* Card 4 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
-              <Activity className="w-8 h-8 text-sky-500 mb-4" />
-              <p className="text-gray-600 text-base font-medium">Once-Off Projects</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">2</h3>
-            </div>
+              {/* Once-Off Projects */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+                onClick={() => navigate("/project")}>
+                <Activity className="w-8 h-8 text-sky-500 mb-4" />
+                <p className="text-gray-600 text-base font-medium">Once-Off Projects</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                  {loading ? "..." : projectCounts.onceOff || 0}
+                </h3>
+              </div>
 
-            {/* Card 5 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
-              <Activity className="w-8 h-8 text-purple-600 mb-4" />
-              <p className="text-gray-600 text-base font-medium">POC Projects</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">5</h3>
-            </div>
+              {/* POC Projects */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+                onClick={() => navigate("/project")}>
+                <Activity className="w-8 h-8 text-purple-600 mb-4" />
+                <p className="text-gray-600 text-base font-medium">POC Projects</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                  {loading ? "..." : projectCounts.poc || 0}
+                </h3>
+              </div>
 
-            {/* Card 6 */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center">
-              <Activity className="w-8 h-8 text-pink-600 mb-4" />
-              <p className="text-gray-600 text-base font-medium">R&D Projects</p>
-              <h3 className="text-3xl font-bold text-gray-900 mt-1">3</h3>
+              {/* R&D Projects */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col items-center text-center"
+                onClick={() => navigate("/project")}>
+                <Activity className="w-8 h-8 text-pink-600 mb-4" />
+                <p className="text-gray-600 text-base font-medium">R&D Projects</p>
+                <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                  {loading ? "..." : projectCounts.rnd || 0}
+                </h3>
+              </div>
             </div>
           </div>
 
 
-
           <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
-
-            {/* Today's Delivery Overview */}
+            {/* Project's Status Overview */}
             <div className="bg-white p-6 rounded-2xl shadow-sm">
               <h2 className="text-2xl font-semibold mb-6 text-gray-800">Project's Status Overview</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {/* Total Projects */}
-                <div className="flex items-center p-4 bg-green-50 rounded-xl">
+                {/* New */}
+                <div className="flex items-center p-4 bg-green-50 rounded-xl"
+                  onClick={() => navigate("/project")}>
                   <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-full mr-4">
                     <Activity className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
                     <p className="text-gray-700 font-medium">New</p>
-                    <h3 className="text-2xl font-bold text-gray-900">7</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {loading ? "..." : projectCounts.newStatus || 0}
+                    </h3>
                   </div>
                 </div>
-                {/* BAU Projects */}
-                <div className="flex items-center p-4 bg-blue-50 rounded-xl">
+
+                {/* Under Development */}
+                <div className="flex items-center p-4 bg-blue-50 rounded-xl"
+                  onClick={() => navigate("/project")}>
                   <div className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-full mr-4">
                     <Activity className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
                     <p className="text-gray-700 font-medium">Under Development</p>
-                    <h3 className="text-2xl font-bold text-gray-900">2</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {loading ? "..." : projectCounts.underDevelopment || 0}
+                    </h3>
                   </div>
                 </div>
 
-                {/* POC Projects */}
-                <div className="flex items-center p-4 bg-purple-50 rounded-xl">
+                {/* On-Hold */}
+                <div className="flex items-center p-4 bg-purple-50 rounded-xl"
+                  onClick={() => navigate("/project")}>
                   <div className="w-12 h-12 flex items-center justify-center bg-purple-100 rounded-full mr-4">
                     <Activity className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
                     <p className="text-gray-700 font-medium">On-Hold</p>
-                    <h3 className="text-2xl font-bold text-gray-900">1</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {loading ? "..." : projectCounts.onHold || 0}
+                    </h3>
                   </div>
                 </div>
 
-                {/* Adhoc Projects */}
-                <div className="flex items-center p-4 bg-yellow-50 rounded-xl">
+                {/* Development Completed */}
+                <div className="flex items-center p-4 bg-yellow-50 rounded-xl"
+                  onClick={() => navigate("/project")}>
                   <div className="w-12 h-12 flex items-center justify-center bg-yellow-100 rounded-full mr-4">
                     <Activity className="w-6 h-6 text-yellow-600" />
                   </div>
                   <div>
-                    <p className="text-gray-700 font-medium">Developement Completed</p>
-                    <h3 className="text-2xl font-bold text-gray-900">1</h3>
+                    <p className="text-gray-700 font-medium">Development Completed</p>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {loading ? "..." : projectCounts.devCompleted || 0}
+                    </h3>
                   </div>
                 </div>
 
-                {/* R&D Projects */}
-                <div className="flex items-center p-4 bg-pink-50 rounded-xl">
+                {/* Closed */}
+                <div className="flex items-center p-4 bg-pink-50 rounded-xl"
+                  onClick={() => navigate("/project")}>
                   <div className="w-12 h-12 flex items-center justify-center bg-pink-100 rounded-full mr-4">
                     <Activity className="w-6 h-6 text-pink-600" />
                   </div>
                   <div>
                     <p className="text-gray-700 font-medium">Closed</p>
-                    <h3 className="text-2xl font-bold text-gray-900">3</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {loading ? "..." : projectCounts.closed || 0}
+                    </h3>
                   </div>
                 </div>
               </div>
             </div>
-
-
-            {/* Overview */}
-
-            {/* <OverdueSummary projects={projects} /> */}
-            {/* <div className="bg-white p-4 rounded-md shadow-sm">
-              <h2 className="text-lg font-bold mb-4">Project </h2>
-              <div className="flex items-center justify-center">
-                <div className="w-70 h-70"> 
-                  <Doughnut data={data} options={options} />
-                </div>
-              </div>
-            </div> */}
           </div>
-
         </main>
 
         // demo view

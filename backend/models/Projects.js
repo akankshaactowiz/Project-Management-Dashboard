@@ -81,29 +81,29 @@ const projectSchema = new mongoose.Schema({
   Feeds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Feed" }],
 
   // New fields for tracking QA cycles, history, etc.
-  history: [activityLogSchema],
-  qaCycleTimes: [{ start: Date, end: Date }],
-  reworkCount: { type: Number, default: 0 },
-  assignedFiles: [assignedFileSchema],
-  qaReports: [
-    {
-      comment: String,
-      status: { type: String, },
-      fileName: String,
-      fileLink: String,
-      uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      uploadedAt: Date,
-      // uniqueId: String,
-      developerComments: [
-        {
-          comment: String,
-          userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-          date: { type: Date, default: Date.now }
-        }
-      ]
-    }
-  ],
-  qaReportLink: { type: String, unique: true },
+  // history: [activityLogSchema],
+  // qaCycleTimes: [{ start: Date, end: Date }],
+  // reworkCount: { type: Number, default: 0 },
+  // assignedFiles: [assignedFileSchema],
+  // qaReports: [
+  //   {
+  //     comment: String,
+  //     status: { type: String, },
+  //     fileName: String,
+  //     fileLink: String,
+  //     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  //     uploadedAt: Date,
+  //     // uniqueId: String,
+  //     developerComments: [
+  //       {
+  //         comment: String,
+  //         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  //         date: { type: Date, default: Date.now }
+  //       }
+  //     ]
+  //   }
+  // ],
+  // qaReportLink: { type: String, unique: true },
   //  qaReports: [qaReportSchema],
   devSubmissions: [
     {
@@ -119,4 +119,4 @@ const projectSchema = new mongoose.Schema({
 
 
 
-export default mongoose.model("Project", projectSchema, "Project_data");
+export default mongoose.model("Project", projectSchema, "Projects_data");

@@ -12,6 +12,7 @@ function CreateFeed({ onClose, onSuccess }) {
   const [country, setCountry] = useState(null);
 
   const [tlId, setTlId] = useState(null);
+  const [pcId, setPcId] = useState(null);
   const [qaId, setQaId] = useState(null);
   const [devId, setDevId] = useState([]); // ✅ should be array for multi-select
   const [bauPerson, setBauPerson] = useState("");
@@ -126,7 +127,7 @@ function CreateFeed({ onClose, onSuccess }) {
         DomainName: domainName,
         ApplicationType: applicationType,
         CountryName: country?.value,
-      
+        
         TLId: tlId?.value || null,
         QAId: qaId?.value || null,
         DeveloperIds: devId.map((d) => d.value),
@@ -289,7 +290,7 @@ function CreateFeed({ onClose, onSuccess }) {
                   label: u.name,
                 }))}
                 value={pcId}
-                onChange={setPCId}
+                onChange={setPcId}
                 placeholder="Select PC"
               />
             </div>

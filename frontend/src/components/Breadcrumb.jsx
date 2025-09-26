@@ -3,10 +3,18 @@ import { Link, useLocation } from "react-router-dom";
 function Breadcrumb({ feedName }) {
   const location = useLocation();
 
-  const pathnames = location.pathname.split("/").filter((x) => x);
+  const pathnames = location.pathname
+    .split("/")
+    .filter((x) => x);
+
   if (location.pathname === "/" || location.pathname === "/home") {
     return null;
   }
+
+  // Filter out dynamic IDs (numbers or long alphanumeric strings)
+  const filteredPathnames = pathnames.filter(
+    (segment) => !/^[0-9a-fA-F]{5,}$/.test(segment)
+  );
 
   return (
     <nav aria-label="breadcrumb" className="bg-gray-50 px-6 py-2 text-gray-600">
@@ -16,11 +24,11 @@ function Breadcrumb({ feedName }) {
             Home
           </Link>
         </li>
-        {pathnames.map((value, index) => {
-          const to = `/${pathnames.slice(0, index + 1).join("/")}`;
-          const isLast = index === pathnames.length - 1;
+        {filteredPathnames.map((value, index) => {
+          const to = `/${filteredPathnames.slice(0, index + 1).join("/")}`;
+          const isLast = index === filteredPathnames.length - 1;
 
-          // If last breadcrumb and lastName is passed, use it
+          // Use feedName if last breadcrumb
           const displayName = isLast && feedName ? feedName : value;
 
           return (

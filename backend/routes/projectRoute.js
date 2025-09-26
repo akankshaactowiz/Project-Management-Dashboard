@@ -9,7 +9,8 @@ import { getProjects, createProject, transitionProject,
     getAssignedToQAProjects,
     getProjectById,
     updateProjectTeam,
-    updateProject
+    updateProject,
+    getProjectCounts
  } from "../controllers/projectsController.js";
  import { upload } from "../middlewares/uploadFiles.js";
  import Project from "../models/Projects.js";
@@ -19,6 +20,8 @@ const router = express.Router();
 // const upload = multer({ dest: "uploads/" });
 // GET all projects
 router.get("/", getProjects);
+
+router.get("/counts", getProjectCounts);
 router.get("/assigned-to-qa", getAssignedToQAProjects);
 router.get("/:id", protect, getProjectById);
 

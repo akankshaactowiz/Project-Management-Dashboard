@@ -3,9 +3,13 @@ import mongoose from "mongoose";
 
 const feedSchema = new mongoose.Schema(
   {
-    projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
+    projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project'},
     FeedName: { type: String },
-    // FeedId: { type: String, required: true },
+    FeedId: { type: String},
+    DomainName: { type: String },
+    ApplicationType: { type: String },
+    CountryName: { type: String },
+
     Status: { type: String, default: "New" },
     Platform: { type: String, },
     BAU: { type: String, default: "None" },
