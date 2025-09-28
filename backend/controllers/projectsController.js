@@ -454,6 +454,8 @@ export const createProject = async (req, res) => {
       Frequency,
       Priority,
       ProjectType,
+      IndustryType,
+      DeliveryType,
       Timeline,
       Description,
       DomainName,
@@ -492,10 +494,12 @@ export const createProject = async (req, res) => {
       DepartmentId: Department,
       Frequency,
       ProjectType,
+      IndustryType,
+      DeliveryType,
       Priority,
       Timeline: Timeline || "",
       Description: Description || "",
-      CreatedBy: createdBy,
+      CreatedBy: createdBy, 
     });
 
     // 2️⃣ Create initial Feed linked to project
@@ -543,6 +547,8 @@ export const updateProject = async (req, res) => {
       Department,
       Priority,
       ProjectType,
+      IndustryType,
+      DeliveryType,
       Timeline,
       Description,
     } = req.body;
@@ -603,6 +609,8 @@ export const updateProject = async (req, res) => {
     project.Frequency = Frequency || project.Frequency;
     project.Priority = Priority || project.Priority;
     project.ProjectType = ProjectType || project.ProjectType;
+    project.IndustryType = IndustryType || project.IndustryType;
+    project.DeliveryType = DeliveryType || project.DeliveryType;
     project.Timeline = Timeline || project.Timeline;
     project.Description = Description || project.Description;
     // project.SOWFile = updatedSOW;
@@ -734,10 +742,10 @@ export const getProjects = async (req, res) => {
     const salesTabs = ["All", "BAU", "POC", "R&D", "Adhoc", "Once-off"];
     const { tab } = req.query;
     if (department === "Sales" && tab && tab !== "All" && salesTabs.includes(tab)) {
-      filter.ProjectType = tab;
+      filter.DeliveryType = tab;
     }
 
-    const salesStatusTab = ["All", "New", "Under Development", "Closed", "On-Hold", "Development Completed"];
+    const salesStatusTab = ["All", "New", "Under Development", "Closed", "On-Hold", "Production", "BAU-Started"];
     const { statusTab } = req.query;
     if (department === "Sales" && statusTab && statusTab !== "All" && salesStatusTab.includes(statusTab)) {
       filter.Status = statusTab;
@@ -1026,10 +1034,22 @@ export const getProjectById = async (req, res) => {
 
   try {
     const project = await Project.findById(id)
-      .populate("PMId TLId DeveloperIds QAId BAUPersonId")
+      .populate("PMId TLId DeveloperIds QAId BAUPersonId CreatedBy BDEId", "name")
 
       .populate("SOWFile.uploadedBy", "name")
       .populate("SampleFiles.uploadedBy", "name")
+       .populate({
+        path: "Feeds",
+
+        populate: [
+          { path: "TLId", select: "name email roleId" },
+          { path: "DeveloperIds", select: "name email roleId" },
+          { path: "QAId", select: "name email roleId" },
+          { path: "BAUPersonId", select: "name email roleId" },
+          { path: "createdBy", select: "name email" },
+
+        ],
+      })
 
 
     if (!project) return res.status(404).json({ message: "Project not found" });

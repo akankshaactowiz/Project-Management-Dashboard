@@ -25,50 +25,110 @@ export default function FeedDetails() {
   const navigate = useNavigate();
 
   // Fetch feed details
+  // useEffect(() => {
+  //   const fetchFeed = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const res = await fetch(
+  //         `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed/${id}`,
+  //         {
+  //           credentials: "include",
+  //         }
+  //       );
+  //       const data = await res.json();
+
+  //       // Handle non-breaking space key
+  //       const feedKey = Object.keys(data).find(
+  //         (k) => k.replace(/\s/g, "").toLowerCase() === "feedname"
+  //       );
+  //       const projectKey = Object.keys(data).find(
+  //         (k) => k.replace(/\s/g, "").toLowerCase() === "projectname"
+  //       );
+
+  //       setFeed({
+  //         ...data,
+  //         feedName: data[feedKey],
+  //         projectName: data[projectKey],
+  //       });
+  //     } catch (err) {
+  //       console.error("Error fetching feed:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchFeed();
+  // }, [id]);
+
   useEffect(() => {
-    const fetchFeed = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(
-          `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed/${id}`,
-          {
-            credentials: "include",
-          }
-        );
-        const data = await res.json();
+  const fetchFeed = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `http://${import.meta.env.VITE_BACKEND_NETWORK_ID}/api/feed/${id}`,
+        { credentials: "include" }
+      );
+      const data = await res.json();
 
-        // Handle non-breaking space key
-        const feedKey = Object.keys(data).find(
-          (k) => k.replace(/\s/g, "").toLowerCase() === "feedname"
-        );
-        const projectKey = Object.keys(data).find(
-          (k) => k.replace(/\s/g, "").toLowerCase() === "projectname"
-        );
+      // Map feed & project data
+      const project = data.projectId || {};
+      setFeed({
+        feedId: data.FeedId || "-",
+        feedName: data.FeedName || "-",
+        domainName: data.DomainName || "-",
+        applicationType: data.ApplicationType || "-",
+        countryName: data.CountryName || "-",
+        status: data.Status || "-",
+        BAU: data.BAU || "-",
+        POC: data.POC || "-",
+        projectCode: project.ProjectCode || "-",
+        projectName: project.ProjectName || "-",
+        frequency: project.Frequency || "-",
+        deliveryType: project.DeliveryType || "-",
+        industryType: project.IndustryType || "-",
+        frameworkType: project.FrameworkType || "-",
+        manageBy: project.ManageBy || "-",
+        qaRules: project.QARules ?? "-",
+        rulesStatus: project.RulesStatus || "-",
+        rulesApply: project.RulesApply || "-",
+        dbStatus: project.DBStatus || "-",
+        projectStatus: project.Status || "-",
+        assignedBy: project.CreatedBy || "-",
+        createdDate: project.CreatedDate || "-",
+        developerIds: project.DeveloperIds || [],
+      });
+    } catch (err) {
+      console.error("Error fetching feed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setFeed({
-          ...data,
-          feedName: data[feedKey],
-          projectName: data[projectKey],
-        });
-      } catch (err) {
-        console.error("Error fetching feed:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFeed();
-  }, [id]);
+  fetchFeed();
+}, [id]);
 
 
-  const columns = [
-    "Timestamp",
-    "Status",
-    "Message",
-    "Processed Records",
-    "Failed Records",
-    "Duration",
-    "Executed By",
-  ];
+
+  // const columns = [
+  //   "Timestamp",
+  //   "Status",
+  //   "Message",
+  //   "Processed Records",
+  //   "Failed Records",
+  //   "Duration",
+  //   "Executed By",
+  // ];
+
+  const columns =[
+    "No.",
+    "Delivery Status",
+    "Start Time",
+    "Delivery Time",
+    "Delivery Code",
+    "File Path",
+    // "Frequency",
+    // "POC"
+
+  ]
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* <div className="flex bg-gray-50 items-center justify-end px-2">
@@ -83,7 +143,7 @@ export default function FeedDetails() {
       </div> */}
 
       {/* Top summary card */}
-
+{/* 
       {loading ? (
         <>
           <div className="flex justify-center items-center">
@@ -145,173 +205,213 @@ export default function FeedDetails() {
             </div>
           </div>
         )
-      )}
+      )} */}
 
-      {/* Tabs */}
-      <div className="mt-6 border-b border-gray-300">
-        <div className="flex space-x-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => {
-                setActiveTab(tab);
-                setCurrentPage(1);
-                setSearch("");
-              }}
-              className={`py-2 font-medium ${activeTab === tab
-                  ? "border-b-2 border-purple-600 text-purple-700"
-                  : "text-gray-600"
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="bg-white">
-        {/* Table controls */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between m-4 gap-3">
-          {/* Left: Show entries */}
-          <div className="flex items-center space-x-2">
-            <label htmlFor="entries" className="text-gray-700">
-              Show
-            </label>
-            <select
-              id="entries"
-              value={entries}
-              onChange={(e) => {
-                setEntries(Number(e.target.value));
-                setCurrentPage(1); // reset to first page
-              }}
-              className="border rounded px-2 py-1"
-            >
-              {[10, 25, 50, 100].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-            <span className=" text-gray-700">entries</span>
-          </div>
+    <div className="bg-white rounded-lg shadow p-6 mt-4">
+        {/* Project Title */}
+        <h3 className="mb-4 text-md font-semibold">
+         {feed?.feedName || "Feed Details"}
+        </h3>
 
-          {/* Right: Search + Export */}
-          <div className="flex items-center space-x-3">
-            {/* Search */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setCurrentPage(1); // reset to first page
-                }}
-                className="border border-gray-300 rounded pl-8 pr-3 py-1 text-sm"
-              />
-              <svg
-                className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* LEFT SIDE (Tabs + Summary/Feeds) */}
+          <div className="lg:col-span-3 min-w-0">
+            {/* Tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                className="px-4 py-2 rounded-md text-sm font-medium bg-purple-600 text-white"
+               
               >
-                <circle cx="11" cy="11" r="7" />
-                <line x1="16.5" y1="16.5" x2="21" y2="21" />
-              </svg>
+                Feed Deliveries
+              </button>
+              {/* <button
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  activeTab === "Feeds"
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+                onClick={() => setActiveTab("Feeds")}
+              >
+                Feeds
+              </button> */}
             </div>
 
-            {/* Export icons */}
+      
+  <div className="overflow-x-auto">
+  <table className="min-w-full border border-gray-300 rounded-md shadow overflow-hidden">
+    <thead className="bg-gray-100 text-gray-700 sticky top-0">
+      <tr>
+        {columns.map((col) => (
+          <th
+            key={col}
+            className="px-3 py-2 text-left font-semibold whitespace-nowrap"
+          >
+            {col}
+          </th>
+        ))}
+      </tr>
+    </thead>
+
+    <tbody className="bg-white">
+      {/* If feed data exists, show it */}
+      {feed  ? (
+        <tr className="border-t">
+          <td className="px-4 py-2"></td>  
+          <td className="px-4 py-2">{feed.DeliveryStatus}</td>
+          <td className="px-4 py-2">{feed.StartTime}</td>
+          <td className="px-4 py-2">{feed.DeliveryTime}</td>
+          <td className="px-4 py-2">{feed.DeliveryCode}</td>
+          
+          <td className="px-4 py-2">{feed.FilePath}</td>
+          {/* <td className="px-4 py-2">{feed.Frequency}</td>
+          <td className="px-4 py-2">{feed.POC }</td> */}
+        </tr>
+      ) : (
+       <tr>
+                           <td colSpan={14} className="text-center p-8 text-gray-500">
+                             <div className="flex flex-col items-center justify-center gap-3">
+                               <img
+                                 src={Img}
+                                 alt="No data"
+                                 className="w-32 h-32 object-contain opacity-80"
+                               />
+                               <p className="font-semibold text-lg text-gray-600">
+                                 No Data Found
+                               </p>
+                               <p className="text-sm text-gray-400">
+                                 Try adding new projects to see them here.
+                               </p>
+                             </div>
+                           </td>
+                         </tr>
+      )}
+    </tbody>
+  </table>
+</div>
+
+          
+          </div>
+
+          {/* RIGHT SIDE (Always visible Project Details) */}
+          <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-100">
+
+            <div className="flex justify-between items-center mb-4">
+            <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <span className="w-2 h-6 bg-blue-500 rounded"></span>
+              Feed Details
+            </h4>
+
             <button
-              title="PDF"
-              className="text-gray-600 hover:text-gray-900"
-              onClick={() => exportData("pdf", "feed-data")}
-            >
-              <FaFilePdf size={16} className="text-red-700" />
-            </button>
-            <button
-              title="Excel"
-              className="text-green-600 hover:text-green-800"
-              onClick={() => exportData("excel", "feed-data")}
-            >
-              <RiFileExcel2Fill size={16} className="text-green-600" />
-            </button>
-            <button
-              title="CSV"
-              className="text-blue-600 hover:text-blue-800"
-              onClick={() => exportData("csv", "feed-data")}
-            >
-              <FaFileCsv size={16} className="text-blue-600" />
-            </button>
-            <button
-              title="JSON"
-              className="text-red-600 hover:text-red-800"
-              onClick={() => exportData("json", "feed-data")}
-            >
-              <LuFileJson size={16} className="text-yellow-500" />
-            </button>
+          className="flex items-center gap-2  text-white px-2 py-1 rounded cursor-pointer"
+          // onClick={() => navigate(`/feed/${id}/update`)}
+        >
+          <FaEdit size={16} className="text-purple-600" />
+          {/* <span>Edit</span> */}
+        </button>
+        
+</div>
+            
+
+           <div className="space-y-3 text-sm">
+  <p className="flex justify-between">
+    <span className="text-gray-500">Feed ID</span>
+    <span className="font-semibold text-gray-800">{feed?.feedId}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Project</span>
+    <span className="font-semibold text-gray-800">
+      {feed?.projectCode} | {feed?.projectName}
+    </span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Frequency</span>
+    <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+      {feed?.frequency}
+    </span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Platform</span>
+    <span className="font-semibold text-gray-800">
+      {feed?.domainName} | {feed?.applicationType} | {feed?.countryName}
+    </span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Status</span>
+    <span className="px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-600">
+      {feed?.status}
+    </span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">BAU</span>
+    <span className="font-semibold text-gray-700">{feed?.BAU}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">POC</span>
+    <span className="font-semibold text-gray-700">{feed?.POC}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">DB Status</span>
+    <span className="font-semibold text-gray-700">{feed?.dbStatus}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Framework Type</span>
+    <span className="font-semibold text-gray-700">{feed?.frameworkType}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Manage By</span>
+    <span className="font-semibold text-gray-700">{feed?.manageBy}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">QA Rules</span>
+    <span className="font-semibold text-gray-700">{feed?.qaRules}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Rules Status</span>
+    <span className="font-semibold text-gray-700">{feed?.rulesStatus}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Rules Apply</span>
+    <span className="font-semibold text-gray-700">{feed?.rulesApply}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Delivery Type</span>
+    <span className="font-semibold text-gray-700">{feed?.deliveryType}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Project Status</span>
+    <span className="font-semibold text-gray-700">{feed?.projectStatus}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Industry</span>
+    <span className="font-semibold text-gray-700">{feed?.industryType}</span>
+  </p>
+
+  <p className="flex justify-between">
+    <span className="text-gray-500">Assigned To</span>
+    <span className="font-semibold text-gray-700">
+      {feed?.developerIds.length > 0 ? feed.developerIds.join(", ") : "-"}
+    </span>
+  </p>
+</div>
+
           </div>
         </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto ">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 text-gray-700">
-              <tr>
-                {columns.map((col) => (
-                  <th
-                    key={col}
-                    className="px-3 py-2 text-left font-semibold whitespace-nowrap"
-                  >
-                    {col.replace(/\./g, " ")}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {dataRows.length > 0 ? (
-                dataRows.map((row, idx) => (
-                  <tr
-                    key={idx}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={col}
-                        className="px-3 py-2 whitespace-nowrap text-sm"
-                      >
-                        {row[col] ?? "-"}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="text-center p-8 text-gray-500"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <img
-                        src={Img}
-                        alt="No data"
-                        className="w-32 h-32 opacity-80"
-                      />
-                      <p>No Data Found</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
       </div>
     </div>
   );

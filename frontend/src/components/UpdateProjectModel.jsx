@@ -28,6 +28,8 @@ const [form, setForm] = useState({
         Frequency: "",
         Priority: "",
         ProjectType: "",
+        IndustryType: "",
+        DeliveryType: "",
         Department: "",
         PM: "",
         BDE: "",
@@ -113,6 +115,8 @@ const [form, setForm] = useState({
             Frequency: project.Frequency || "",
             Priority: project.Priority || "",
             ProjectType: project.ProjectType || "",
+            IndustryType: project.IndustryType || "",
+            DeliveryType: project.DeliveryType || "",  
             Department: project.DepartmentId?._id || project.DepartmentId || "",
             PM: project.PMId?._id || "",
             BDE: project.BDEId?._id || "",
@@ -308,8 +312,50 @@ const [form, setForm] = useState({
                                 + Add Attachment
                             </button>
                         </div>
+                        
+                        {/* Industry Type */}
+                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Industry Type</label>
+                            <select
+                                name="IndustryType"
+                                value={form.IndustryType}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded p-2"
+                            >
+                                <option value="" disabled>Select Industry Type</option>
+                                <option value="E-com">E-com</option>
+                <option value="Food">Food</option>
+                <option value="Q-com">Q-com</option>
+                <option value="Sports">Sports</option>
+                  <option value="Travel">Travel</option>
+                <option value="OTT">OTT</option>
+                <option value="Real Estate">Real Estate</option>
+                <option value="Government">Government</option>  
+                <option value="Event">Event</option>
+                <option value="Social Media">Social Media</option>
+                <option value="Music">Music</option>
+                            </select>
+                        </div>
 
-                        {/* Project Type */}
+                        {/* Delivery Type */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Type</label>
+                            <select
+                                name="DeliveryType"
+                                value={form.DeliveryType}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded p-2"
+                            >
+                                <option value="" disabled>Select Delivery Type</option>
+                                <option value="POC">POC</option>
+                                <option value="BAU">BAU</option>
+                                <option value="R&D">R&D</option>
+                                <option value="Adhoc">Adhoc</option>
+                            </select>
+                        </div>
+                       
+
+                       {/* Project Type */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Project Type</label>
                             <select
@@ -319,12 +365,12 @@ const [form, setForm] = useState({
                                 className="w-full border border-gray-300 rounded p-2"
                             >
                                 <option value="" disabled>Select Project Type</option>
-                                <option value="POC">POC</option>
-                                <option value="BAU">BAU</option>
-                                <option value="R&D">R&D</option>
-                                <option value="Adhoc">Adhoc</option>
+                                 <option value="API">API</option>
+                <option value="Data Service">Data Service</option>
+                             
                             </select>
                         </div>
+                        
 
                         {/* Frequency */}
                         <div>

@@ -278,7 +278,7 @@ export const getFeeds = async (req, res) => {
 
 export const getFeedById = async (req, res) => {
   try {
-    const feed = await FeedData.findById(req.params.id);
+    const feed = await FeedData.findById(req.params.id).populate("projectId").populate("TLId", "name");
     if (!feed) return res.status(404).json({ message: "Feed not found" });
     res.status(200).json(feed);
   } catch (err) {

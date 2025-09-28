@@ -27,6 +27,8 @@ export default function CreateProjectModal({ isOpen, onClose }) {
     Frequency: "",
     Priority: "",
     ProjectType: "",
+    IndustryType: "",
+    DeliveryType: "",
     Department: "",
     PM: "",
     BDE: "", // added BDE
@@ -47,14 +49,14 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
 
   // helper to normalize user arrays returned by various endpoints
-  const normalizeUsersResponse = (data) => {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.users)) return data.users;
-    if (Array.isArray(data.pmUsers)) return data.pmUsers;
-    if (Array.isArray(data.data)) return data.data;
-    return [];
-  };
+  // const normalizeUsersResponse = (data) => {
+  //   if (!data) return [];
+  //   if (Array.isArray(data)) return data;
+  //   if (Array.isArray(data.users)) return data.users;
+  //   if (Array.isArray(data.pmUsers)) return data.pmUsers;
+  //   if (Array.isArray(data.data)) return data.data;
+  //   return [];
+  // };
 
   // --- Load departments (filter to only R&D and Operation) and BDE list when modal opens ---
   useEffect(() => {
@@ -203,6 +205,8 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       formData.append("Frequency", form.Frequency);
       formData.append("Priority", form.Priority);
       formData.append("ProjectType", form.ProjectType);
+      formData.append("IndustryType", form.IndustryType);
+      formData.append("DeliveryType", form.DeliveryType);
       formData.append("PMId", form.PM || "");
       formData.append("BDEId", form.BDE || "");
       formData.append("DepartmentId", form.Department || "");
@@ -454,10 +458,38 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 + Add Attachment
               </button>
             </div>
+           
 
-
-            {/* Project Type */}
+            {/* Industry Type */}
             <div>
+              <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-1">
+                Industry Type
+              </label>
+              <select
+                name="IndustryType"
+                value={form.IndustryType}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-r p-2"
+              >
+                <option value="" disabled>
+                  Select Industry Type
+                </option>
+                <option value="E-com">E-com</option>
+                <option value="Food">Food</option>
+                <option value="Q-com">Q-com</option>
+                <option value="Sports">Sports</option>
+                  <option value="Travel">Travel</option>
+                <option value="OTT">OTT</option>
+                <option value="Real Estate">Real Estate</option>
+                <option value="Government">Government</option>  
+                <option value="Event">Event</option>
+                <option value="Social Media">Social Media</option>
+                <option value="Music">Music</option>
+              </select>
+            </div>
+
+            
+ <div>
               <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-1">
                 Project Type
               </label>
@@ -470,12 +502,36 @@ export default function CreateProjectModal({ isOpen, onClose }) {
                 <option value="" disabled>
                   Select Project Type
                 </option>
+                <option value="API">API</option>
+                <option value="Data Service">Data Service</option>
+              </select>
+            </div>
+            {/* Project Type */}
+            <div>
+              <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-1">
+                Delivery Type
+              </label>
+              <select
+                name="DeliveryType"
+                value={form.DeliveryType}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-r p-2"
+              >
+                <option value="" disabled>
+                  Select Delivery Type
+                </option>
                 <option value="POC">POC</option>
                 <option value="BAU">BAU</option>
                 <option value="R&D">R&D</option>
                 <option value="Adhoc">Adhoc</option>
+                <option value="Once-off">Once-off</option>
+                
+                
+              
               </select>
             </div>
+
+            
 
             {/* Frequency */}
             <div>

@@ -19,6 +19,8 @@ const assignedFileSchema = new mongoose.Schema({
 const projectSchema = new mongoose.Schema({
   ProjectCode: { type: String, required: true, unique: true },
   Frequency: { type: String, default: "Daily" },
+  IndustryType: {type:String, default: "N/A"},
+  DeliveryType: { type: String, default: "N/A" },
   ProjectType: { type: String, default: "N/A" },
 
   // --- SALES ---
